@@ -172,6 +172,11 @@ impl Greeting {
         self.owner_id = owner_id;
     }
 
+    pub fn set_cross_chain_contract(&mut self, cross_chain_contract: AccountId) {
+        assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
+        self.cross_chain_contract_id = cross_chain_contract;
+    }
+
     pub fn clear_data(&mut self, chains: Vec<String>) {
         assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
         if chains.len() == 0 {
