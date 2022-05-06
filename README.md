@@ -1,0 +1,1 @@
+# NEAR contract template
