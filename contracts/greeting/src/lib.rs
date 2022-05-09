@@ -2,7 +2,7 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json::json;
-use near_sdk::{env, log, near_bindgen, AccountId, Gas, PanicOnDefault, Promise};
+use near_sdk::{env, near_bindgen, AccountId, Gas, PanicOnDefault, Promise};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
@@ -36,6 +36,7 @@ pub struct Greeting {
     cross_chain_contract_id: AccountId,
     greeting_data: UnorderedMap<String, GreetingData>,
     destination_contract: UnorderedMap<String, DstContract>,
+    // Temporarily unavailable
     permitted_contract: UnorderedMap<String, HashMap<String, HashSet<String>>>,
 }
 
@@ -111,11 +112,7 @@ impl Greeting {
         contract_address: String,
         action_name: String,
     ) {
-        assert_eq!(
-            env::predecessor_account_id(),
-            self.owner_id.to_string(),
-            "Unauthorize"
-        );
+        assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
         self.destination_contract.insert(
             &chain_name,
             &DstContract {
@@ -142,22 +139,22 @@ impl Greeting {
         action_name: String,
     ) {
         assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        if let Some(contracts) = self.permitted_contract.get(&chain_name) {
+        if let Some(mut contracts) = self.permitted_contract.get(&chain_name) {
             // if let action_name
-            if let Some(actions) = contracts.get(&sender) {
-                assert!(actions.contains(&action_name), "Already exist");
+            if let Some(actions) = contracts.get_mut(&sender) {
+                assert!(!actions.contains(&action_name), "Already exist");
                 actions.insert(action_name);
-                contracts.insert(sender, *actions);
+                // contracts.insert(sender, *actions);
             } else {
-                let hs = HashSet::new();
+                let mut hs = HashSet::new();
                 hs.insert(action_name);
                 contracts.insert(sender, hs);
             }
             self.permitted_contract.insert(&chain_name, &contracts);
         } else {
-            let hs = HashSet::new();
+            let mut hs = HashSet::new();
             hs.insert(action_name);
-            let hm = HashMap::new();
+            let mut hm = HashMap::new();
             hm.insert(sender, hs);
             self.permitted_contract.insert(&chain_name, &hm);
         }
