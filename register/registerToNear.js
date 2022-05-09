@@ -9,7 +9,8 @@ const contractId =
 const nodeUrl = `https://rpc.${networkId}.near.org`;
 const AvalancheGreetingContractAddress =
   "0x71F985781d5439E469384c483262b24085Fc08aC";
-  // destination chain name
+const crossChainContractId = "d-hub.testnet";
+// destination chain name
 const destinationChainName = "AVALANCHE";
 const destinationActionName = "receiveGreeting";
 
@@ -26,7 +27,24 @@ const nearConfig = {
   const near = await nearAPI.connect(nearConfig);
   const account = await near.account(accoutId);
 
+  // init greeting contract
   let functionCallResponse = await account.functionCall({
+    contractId,
+    methodName: "new",
+    args: {
+      owner_id: contractId,
+      cross_chain_contract_id: crossChainContractId,
+    },
+    gas: 30000000000000,
+  });
+
+  let result = await nearAPI.providers.getTransactionLastResult(
+    functionCallResponse
+  );
+  console.log(result);
+  
+  // Register contract info for sending messages to other chains
+  functionCallResponse = await account.functionCall({
     contractId,
     methodName: "register_dst_contract",
     args: {
@@ -34,10 +52,10 @@ const nearConfig = {
       contract_address: AvalancheGreetingContractAddress,
       action_name: destinationActionName,
     },
-    gas: 60000000000000,
+    gas: 30000000000000,
   });
 
-  let result = await nearAPI.providers.getTransactionLastResult(
+  result = await nearAPI.providers.getTransactionLastResult(
     functionCallResponse
   );
   console.log(result);

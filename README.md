@@ -19,10 +19,6 @@ Dependencies:
 
 * @dante-contracts
 
-* [@openzeppelin-contracts v4.4.2](https://github.com/OpenZeppelin/openzeppelin-contracts)
-
-* [@truffle/hdwallet-provider v2.0.0](https://www.npmjs.com/package/@truffle/hdwallet-provider)
-
 ### Install
 
 ```sh
