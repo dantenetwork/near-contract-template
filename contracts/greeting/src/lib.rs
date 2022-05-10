@@ -80,7 +80,8 @@ impl Greeting {
                     contract: self.destination_contract.get(&to_chain).unwrap().contract_address,
                     action: self.destination_contract.get(&to_chain).unwrap().action_name,
                     data: greeting_action_data,
-                }
+                },
+                "response": 0,
             })
             .to_string()
             .into_bytes(),
