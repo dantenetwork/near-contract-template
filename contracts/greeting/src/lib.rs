@@ -1,9 +1,9 @@
+use dante_cross_chain_standards::{Content, CrossChain};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json::json;
-use near_sdk::{env, near_bindgen, AccountId, Gas, PanicOnDefault, Promise};
-use std::collections::{HashMap, HashSet};
+use near_sdk::{env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault};
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(tag = "type", crate = "near_sdk::serde")]
@@ -14,30 +14,18 @@ pub struct GreetingData {
     date: String,
 }
 
-#[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
-#[serde(crate = "near_sdk::serde")]
-pub struct Content {
-    pub contract: String,
-    pub action: String,
-    pub data: String,
-}
-
-#[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
-#[serde(tag = "type", crate = "near_sdk::serde")]
-pub struct DstContract {
-    contract_address: String,
-    action_name: String,
-}
-
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Greeting {
     owner_id: AccountId,
-    cross_chain_contract_id: AccountId,
+    cross: CrossChain,
     greeting_data: UnorderedMap<String, GreetingData>,
-    destination_contract: UnorderedMap<String, DstContract>,
-    // Temporarily unavailable
-    permitted_contract: UnorderedMap<String, HashMap<String, HashSet<String>>>,
+}
+
+#[derive(BorshSerialize, BorshStorageKey)]
+enum StorageKey {
+    CrossChain,
+    GreetingData,
 }
 
 #[near_bindgen]
@@ -46,10 +34,8 @@ impl Greeting {
     pub fn new(owner_id: AccountId, cross_chain_contract_id: AccountId) -> Self {
         Self {
             owner_id,
-            cross_chain_contract_id,
-            greeting_data: UnorderedMap::new(b"g"),
-            destination_contract: UnorderedMap::new(b"o"),
-            permitted_contract: UnorderedMap::new(b"p"),
+            cross: CrossChain::new(StorageKey::CrossChain, cross_chain_contract_id),
+            greeting_data: UnorderedMap::new(StorageKey::GreetingData),
         }
     }
 
@@ -60,42 +46,34 @@ impl Greeting {
      * @param title - greeting content
      * @param title - greeting date
      */
-    pub fn send_greeting(
-        &self,
-        to_chain: String,
-        title: String,
-        content: String,
-        date: String,
-    ) -> Promise {
+    pub fn send_greeting(&self, to_chain: String, title: String, content: String, date: String) {
         let greeting_action_data = json!({
-            "greeting": [to_chain, title, content, date]
+            "greeting": ["NEAR".to_string(), title, content, date]
         })
         .to_string();
-        // log!("greeting_action_data: {}", greeting_action_data);
-        Promise::new(self.cross_chain_contract_id.clone()).function_call(
-            "send_message".to_string(),
-            json!({
-                "to_chain": to_chain,
-                "content": Content{
-                    contract: self.destination_contract.get(&to_chain).unwrap().contract_address,
-                    action: self.destination_contract.get(&to_chain).unwrap().action_name,
-                    data: greeting_action_data,
-                },
-                "response": 0,
-            })
-            .to_string()
-            .into_bytes(),
-            0,
-            Gas(5_000_000_000_000),
-        )
+        let content = Content {
+            contract: self
+                .cross
+                .destination_contract
+                .get(&to_chain)
+                .unwrap()
+                .contract_address,
+            action: self
+                .cross
+                .destination_contract
+                .get(&to_chain)
+                .unwrap()
+                .action_name,
+            data: greeting_action_data,
+        };
+        self.cross.call_cross(to_chain, content);
     }
 
-    pub fn receive_greeting(&mut self, greeting: Vec<String>) -> bool {
+    pub fn receive_greeting(&mut self, greeting: Vec<String>) {
         assert_eq!(
             env::predecessor_account_id(),
-            self.cross_chain_contract_id,
-            "only call by {}",
-            self.cross_chain_contract_id
+            self.cross.cross_chain_contract_id,
+            "Processs by cross chain contract"
         );
         let data = GreetingData {
             from_chain: greeting[0].clone(),
@@ -104,7 +82,10 @@ impl Greeting {
             date: greeting[3].clone(),
         };
         self.greeting_data.insert(&greeting[0], &data);
-        return true;
+    }
+
+    pub fn get_greeting(&self, from_chain: String) -> Option<GreetingData> {
+        self.greeting_data.get(&from_chain)
     }
 
     pub fn register_dst_contract(
@@ -114,75 +95,7 @@ impl Greeting {
         action_name: String,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
-        self.destination_contract.insert(
-            &chain_name,
-            &DstContract {
-                contract_address,
-                action_name,
-            },
-        );
-    }
-
-    ///////////////////////////////////////////////
-    ///    Receive messages from other chains   ///
-    ///////////////////////////////////////////////
-
-    /**
-     * Authorize contracts of other chains to call the action of this contract
-     * @param chain_name - from chain name
-     * @param sender - sender of cross chain message
-     * @param action_name - action name which allowed to be invoked
-     */
-    pub fn register_permitted_contract(
-        &mut self,
-        chain_name: String,
-        sender: String,
-        action_name: String,
-    ) {
-        assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        if let Some(mut contracts) = self.permitted_contract.get(&chain_name) {
-            // if let action_name
-            if let Some(actions) = contracts.get_mut(&sender) {
-                assert!(!actions.contains(&action_name), "Already exist");
-                actions.insert(action_name);
-                // contracts.insert(sender, *actions);
-            } else {
-                let mut hs = HashSet::new();
-                hs.insert(action_name);
-                contracts.insert(sender, hs);
-            }
-            self.permitted_contract.insert(&chain_name, &contracts);
-        } else {
-            let mut hs = HashSet::new();
-            hs.insert(action_name);
-            let mut hm = HashMap::new();
-            hm.insert(sender, hs);
-            self.permitted_contract.insert(&chain_name, &hm);
-        }
-    }
-
-    pub fn get(&self, from_chain: String) -> Option<GreetingData> {
-        self.greeting_data.get(&from_chain)
-    }
-
-    pub fn set_owner_id(&mut self, owner_id: AccountId) {
-        assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        self.owner_id = owner_id;
-    }
-
-    pub fn set_cross_chain_contract(&mut self, cross_chain_contract: AccountId) {
-        assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        self.cross_chain_contract_id = cross_chain_contract;
-    }
-
-    pub fn clear_data(&mut self, chains: Vec<String>) {
-        assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        if chains.len() == 0 {
-            self.greeting_data.clear();
-        } else {
-            for chain in chains {
-                self.greeting_data.remove(&chain);
-            }
-        }
+        self.cross
+            .register_dst_contract(chain_name, contract_address, action_name);
     }
 }
