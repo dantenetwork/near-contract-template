@@ -1,7 +1,7 @@
 use crate::types::{Content, DstContract, Session};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
-use near_sdk::{ext_contract, AccountId, Balance, Gas, IntoStorageKey, PromiseOrValue};
+use near_sdk::{ext_contract, AccountId, Balance, Gas, IntoStorageKey, Promise};
 
 const GAS_FOR_SENT_MESSAGE: Gas = Gas(5_000_000_000_000);
 
@@ -36,7 +36,7 @@ impl CrossChain {
         to_chain: String,
         content: Content,
         session: Option<Session>,
-    ) -> PromiseOrValue<u64> {
+    ) -> Promise {
         ext_cross_contract::send_message(
             to_chain,
             content,
@@ -45,18 +45,13 @@ impl CrossChain {
             NO_DEPOSIT,
             GAS_FOR_SENT_MESSAGE,
         )
-        .into()
     }
 
     pub fn call_cross(&self, to_chain: String, content: Content) {
         self.internal_call_cross_chain(to_chain, content, None);
     }
 
-    pub fn call_cross_with_session(
-        &self,
-        to_chain: String,
-        content: Content,
-    ) -> PromiseOrValue<u64> {
+    pub fn call_cross_with_session(&self, to_chain: String, content: Content) -> Promise {
         self.internal_call_cross_chain(
             to_chain,
             content,
