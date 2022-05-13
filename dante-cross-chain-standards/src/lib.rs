@@ -1,7 +1,5 @@
-pub mod core;
 pub mod core_impl;
 mod types;
-pub use self::types::Session;
 
-mod macros;
-pub use macros::*;
+pub use self::core_impl::CrossChain;
+pub use self::types::{Content, Session, Context};
