@@ -4,7 +4,7 @@ use near_sdk::collections::UnorderedMap;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json;
 use near_sdk::{
-    env, ext_contract, log, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault,
+    env, ext_contract, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault,
     PromiseOrValue, PromiseResult,
 };
 
@@ -22,7 +22,6 @@ pub struct ComputeTask {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Computation {
-    owner_id: AccountId,
     cross: CrossChain,
     compute_task: UnorderedMap<u64, ComputeTask>,
 }
@@ -34,7 +33,8 @@ pub trait MyContract {
 
 #[derive(BorshSerialize, BorshStorageKey)]
 enum StorageKey {
-    CrossChain,
+    DestinationContract,
+    PermittedContract,
     Result,
 }
 
@@ -43,8 +43,12 @@ impl Computation {
     #[init]
     pub fn new(owner_id: AccountId, cross_chain_contract_id: AccountId) -> Self {
         Self {
-            owner_id,
-            cross: CrossChain::new(StorageKey::CrossChain, cross_chain_contract_id),
+            cross: CrossChain::new(
+                owner_id,
+                StorageKey::DestinationContract,
+                StorageKey::PermittedContract,
+                cross_chain_contract_id,
+            ),
             compute_task: UnorderedMap::new(StorageKey::Result),
         }
     }
@@ -95,6 +99,11 @@ impl Computation {
             env::predecessor_account_id(),
             "Processs by cross chain contract"
         );
+        self.cross.assert_register_permitted_contract(
+            &context.from_chain,
+            &context.sender,
+            &context.action,
+        );
         let mut sum: u64 = 0;
         for num in nums {
             sum += num;
@@ -123,7 +132,6 @@ impl Computation {
             env::predecessor_account_id(),
             "Processs by cross chain contract."
         );
-        log!("Start receive_compute_result: {}", context.id);
         self.compute_task
             .get(&context.id)
             .as_mut()
@@ -137,29 +145,20 @@ impl Computation {
         self.compute_task.get(&id)
     }
 
-    pub fn register_dst_contract(
-        &mut self,
-        chain_name: String,
-        contract_address: String,
-        action_name: String,
-    ) {
-        assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
-        self.cross
-            .register_dst_contract(chain_name, contract_address, action_name);
-    }
-
     #[private]
     pub fn callback(&mut self, nums: Vec<u64>) -> u64 {
-        let mut session_id: u64 = 0;
+        // let mut session_id: u64 = 0;
         match env::promise_result(0) {
             PromiseResult::Successful(result) => {
-                session_id = near_sdk::serde_json::from_slice::<u64>(&result)
+                let session_id = near_sdk::serde_json::from_slice::<u64>(&result)
                     .expect("unwrap session id failed");
                 self.compute_task
                     .insert(&session_id, &ComputeTask { nums, result: None });
+                session_id
             }
             _ => env::panic_str("dsafd"),
         }
-        session_id
     }
 }
+
+dante_cross_chain_standards::impl_cross_chain_register!(Computation, cross);

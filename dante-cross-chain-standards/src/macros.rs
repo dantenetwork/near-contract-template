@@ -1,0 +1,31 @@
+/// The core methods for a basic Register cross information. Extension standards may be
+/// added in addition to this macro.
+#[macro_export]
+macro_rules! impl_cross_chain_register {
+    ($contract: ident, $cross: ident) => {
+        use $crate::RegisterCore;
+
+        #[near_bindgen]
+        impl RegisterCore for $contract {
+            fn register_dst_contract(
+                &mut self,
+                chain_name: String,
+                contract_address: String,
+                action_name: String,
+            ) {
+                self.$cross
+                    .register_dst_contract(chain_name, contract_address, action_name);
+            }
+
+            fn register_permitted_contract(
+                &mut self,
+                chain_name: String,
+                sender: String,
+                action_name: String,
+            ) {
+                self.$cross
+                    .register_permitted_contract(chain_name, sender, action_name);
+            }
+        }
+    };
+}
