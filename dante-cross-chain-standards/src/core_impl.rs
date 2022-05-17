@@ -86,13 +86,12 @@ impl CrossChain {
 
     pub fn register_dst_contract(
         &mut self,
-        action_name: String,
         chain_name: String,
+        action_name: String,
         contract_address: String,
         contract_action_name: String,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
-
         match self.destination_contract.get(&chain_name) {
             Some(mut map) => {
                 if !map.contains_key(&action_name) {
@@ -106,6 +105,7 @@ impl CrossChain {
                 } else {
                     env::panic_str("Already contains");
                 }
+                self.destination_contract.insert(&chain_name, &map);
             }
             _ => {
                 let mut ms = HashMap::new();
