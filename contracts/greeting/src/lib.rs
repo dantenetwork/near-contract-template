@@ -55,19 +55,18 @@ impl Greeting {
             "greeting": ["NEAR".to_string(), title, content, date]
         })
         .to_string();
+        let action_name = "send_greeting".to_string();
+        let dst_contract = self
+            .cross
+            .destination_contract
+            .get(&to_chain)
+            .expect("to chain not register");
+        let contract = dst_contract
+            .get(&action_name)
+            .expect("contract not register");
         let content = Content {
-            contract: self
-                .cross
-                .destination_contract
-                .get(&to_chain)
-                .unwrap()
-                .contract_address,
-            action: self
-                .cross
-                .destination_contract
-                .get(&to_chain)
-                .unwrap()
-                .action_name,
+            contract: contract.contract_address.clone(),
+            action: contract.action_name.clone(),
             data: greeting_action_data,
         };
         self.cross.call_cross(to_chain, content);

@@ -58,19 +58,18 @@ impl Computation {
             "_nums": nums,
         })
         .to_string();
+        let action_name = "receive_compute_task".to_string();
+        let dst_contract = self
+            .cross
+            .destination_contract
+            .get(&to_chain)
+            .expect("to chain not register");
+        let contract = dst_contract
+            .get(&action_name)
+            .expect("contract not register");
         let content = Content {
-            contract: self
-                .cross
-                .destination_contract
-                .get(&to_chain)
-                .unwrap()
-                .contract_address,
-            action: self
-                .cross
-                .destination_contract
-                .get(&to_chain)
-                .unwrap()
-                .action_name,
+            contract: contract.contract_address.clone(),
+            action: contract.action_name.clone(),
             data,
         };
         self.cross
@@ -109,17 +108,22 @@ impl Computation {
             sum += num;
         }
         let data = serde_json::json!({
-            "result": sum,
+            "_result": sum,
         })
         .to_string();
-        let destination_contract = self
+
+        let action_name = "receive_compute_task".to_string();
+        let dst_contract = self
             .cross
             .destination_contract
             .get(&context.from_chain)
-            .expect("not register");
+            .expect("to chain not register");
+        let contract = dst_contract
+            .get(&action_name)
+            .expect("contract not register");
         let content = Content {
-            contract: destination_contract.contract_address,
-            action: destination_contract.action_name,
+            contract: contract.contract_address.clone(),
+            action: contract.action_name.clone(),
             data,
         };
         self.cross
@@ -158,6 +162,13 @@ impl Computation {
             }
             _ => env::panic_str("dsafd"),
         }
+    }
+
+    pub fn get_dst_contract(&self, chain: String, action_name: String) -> (String, String) {
+        let dst_contract = self.cross.destination_contract.get(&chain).unwrap();
+        // let action_name = "receive_"
+        let contract = dst_contract.get(&action_name).unwrap();
+        (contract.contract_address.clone(), contract.action_name.clone())
     }
 }
 

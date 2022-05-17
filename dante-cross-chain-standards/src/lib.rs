@@ -15,8 +15,9 @@ pub trait RegisterCore {
 
     fn register_dst_contract(
         &mut self,
+        action_name: String,
         chain_name: String,
         contract_address: String,
-        action_name: String,
+        contract_action_name: String,
     );
 }

@@ -9,12 +9,17 @@ macro_rules! impl_cross_chain_register {
         impl RegisterCore for $contract {
             fn register_dst_contract(
                 &mut self,
+                action_name: String,
                 chain_name: String,
                 contract_address: String,
-                action_name: String,
+                contract_action_name: String,
             ) {
-                self.$cross
-                    .register_dst_contract(chain_name, contract_address, action_name);
+                self.$cross.register_dst_contract(
+                    chain_name,
+                    action_name,
+                    contract_address,
+                    contract_action_name,
+                );
             }
 
             fn register_permitted_contract(
