@@ -9,8 +9,8 @@ macro_rules! impl_cross_chain_register {
         impl RegisterCore for $contract {
             fn register_dst_contract(
                 &mut self,
-                action_name: String,
                 chain_name: String,
+                action_name: String,
                 contract_address: String,
                 contract_action_name: String,
             ) {
