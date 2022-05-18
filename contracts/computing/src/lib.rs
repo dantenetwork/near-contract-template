@@ -1,6 +1,7 @@
 use dante_cross_chain_standards::{Content, Context, CrossChain};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json;
 use near_sdk::{
@@ -15,8 +16,8 @@ const NO_DEPOSIT: Balance = 0;
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(tag = "type", crate = "near_sdk::serde")]
 pub struct ComputeTask {
-    pub nums: Vec<u64>,
-    pub result: Option<u64>,
+    pub nums: Vec<U128>,
+    pub result: Option<U128>,
 }
 
 #[near_bindgen]
@@ -28,7 +29,7 @@ pub struct Computation {
 
 #[ext_contract(ext_self)]
 pub trait MyContract {
-    fn callback(&mut self, nums: Vec<u64>) -> u64;
+    fn callback(&mut self, nums: Vec<U128>) -> U128;
 }
 
 #[derive(BorshSerialize, BorshStorageKey)]
@@ -53,7 +54,7 @@ impl Computation {
         }
     }
 
-    pub fn send_compute_task(&mut self, to_chain: String, nums: Vec<u64>) -> PromiseOrValue<u64> {
+    pub fn send_compute_task(&mut self, to_chain: String, nums: Vec<U128>) -> PromiseOrValue<u64> {
         let data = serde_json::json!({
             "_nums": nums,
         })
@@ -83,7 +84,7 @@ impl Computation {
             .into()
     }
 
-    pub fn receive_compute_task(&self, nums: Vec<u64>, context: Context) {
+    pub fn receive_compute_task(&self, nums: Vec<U128>, context: Context) {
         assert_eq!(
             self.cross.cross_chain_contract_id,
             env::predecessor_account_id(),
@@ -94,16 +95,16 @@ impl Computation {
             &context.sender,
             &context.action,
         );
-        let mut sum: u64 = 0;
+        let mut sum: U128 = U128(0);
         for num in nums {
-            sum += num;
+            sum.0 += num.0;
         }
         let data = serde_json::json!({
             "_result": sum,
         })
         .to_string();
 
-        let action_name = "receive_compute_task".to_string();
+        let action_name = "receive_compute_result".to_string();
         let dst_contract = self
             .cross
             .destination_contract
@@ -121,7 +122,7 @@ impl Computation {
             .send_response_message(context.from_chain, content, context.id);
     }
 
-    pub fn receive_compute_result(&mut self, result: u64, context: Context) {
+    pub fn receive_compute_result(&mut self, result: U128, context: Context) {
         assert_eq!(
             self.cross.cross_chain_contract_id,
             env::predecessor_account_id(),
@@ -129,13 +130,10 @@ impl Computation {
         );
         let session = context.session.unwrap();
         let id = session.id.unwrap();
-        self.compute_task
-            .get(&context.id)
-            .as_mut()
-            .and_then(|task| {
-                task.result = Some(result);
-                self.compute_task.insert(&id, task)
-            });
+        self.compute_task.get(&id).as_mut().and_then(|task| {
+            task.result = Some(result);
+            self.compute_task.insert(&id, task)
+        });
     }
 
     pub fn get_compute_task(&self, id: u64) -> Option<ComputeTask> {
@@ -143,7 +141,7 @@ impl Computation {
     }
 
     #[private]
-    pub fn callback(&mut self, nums: Vec<u64>) -> u64 {
+    pub fn callback(&mut self, nums: Vec<U128>) -> u64 {
         // let mut session_id: u64 = 0;
         match env::promise_result(0) {
             PromiseResult::Successful(result) => {
@@ -161,7 +159,10 @@ impl Computation {
         let dst_contract = self.cross.destination_contract.get(&chain).unwrap();
         // let action_name = "receive_"
         let contract = dst_contract.get(&action_name).unwrap();
-        (contract.contract_address.clone(), contract.action_name.clone())
+        (
+            contract.contract_address.clone(),
+            contract.action_name.clone(),
+        )
     }
 }
 
