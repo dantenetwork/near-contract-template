@@ -81,15 +81,6 @@ impl Computation {
                 GAS_FOR_CALLBACK,
             ))
             .into()
-        // self.cross
-        //     .call_cross_with_session(to_chain, content)
-        //     .and(ext_self::callback(
-        //         nums,
-        //         env::current_account_id(),
-        //         NO_DEPOSIT,
-        //         GAS_FOR_CALLBACK,
-        //     ))
-        //     .into()
     }
 
     pub fn receive_compute_task(&self, nums: Vec<u64>, context: Context) {
@@ -136,12 +127,14 @@ impl Computation {
             env::predecessor_account_id(),
             "Processs by cross chain contract."
         );
+        let session = context.session.unwrap();
+        let id = session.id.unwrap();
         self.compute_task
             .get(&context.id)
             .as_mut()
             .and_then(|task| {
                 task.result = Some(result);
-                self.compute_task.insert(&context.id, task)
+                self.compute_task.insert(&id, task)
             });
     }
 
@@ -160,7 +153,7 @@ impl Computation {
                     .insert(&session_id, &ComputeTask { nums, result: None });
                 session_id
             }
-            _ => env::panic_str("dsafd"),
+            _ => env::panic_str("call omi-chain failed"),
         }
     }
 
