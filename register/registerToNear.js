@@ -4,15 +4,19 @@ const homedir = require("os").homedir();
 const credentialsPath = path.join(homedir, ".near-credentials");
 const networkId = "testnet";
 const accoutId = "georgecross.testnet";
-const contractId =
-  "98793cd91a3f870fb126f66285808c7e094afcfc4eda8a970f6648cdf0dbd6de";
+const greetingContractId =
+  "9f9350eb575cae7aac7f85a8c62b08d94dcac70a84e3c765464ff87c669fa4e5";
+const computeContractId =
+  "a7d1736372266477e0d0295d34ae47622ba50d007031a009976348f954e681fe";
+
 const nodeUrl = `https://rpc.${networkId}.near.org`;
 const AvalancheGreetingContractAddress =
-  "0x71F985781d5439E469384c483262b24085Fc08aC";
-const crossChainContractId = "d-hub.testnet";
+  "0xc17a00D5e657fd8E5766A4E1C13599ea4d31E563";
+const AvalancheComputingContractAddress =
+  "0x04b697c09243D8aD48DE703E10F6b82A931456D9"; 
 // destination chain name
-const destinationChainName = "AVALANCHE";
-const destinationActionName = "receiveGreeting";
+const destinationChainName = "PLATONEVMDEV";
+const gas = 30000000000000;
 
 const nearConfig = {
   networkId,
@@ -27,36 +31,72 @@ const nearConfig = {
   const near = await nearAPI.connect(nearConfig);
   const account = await near.account(accoutId);
 
-  // init greeting contract
-  let functionCallResponse = await account.functionCall({
-    contractId,
-    methodName: "new",
-    args: {
-      owner_id: contractId,
-      cross_chain_contract_id: crossChainContractId,
-    },
-    gas: 30000000000000,
-  });
-
-  let result = await nearAPI.providers.getTransactionLastResult(
-    functionCallResponse
-  );
-  console.log(result);
-  
   // Register contract info for sending messages to other chains
-  functionCallResponse = await account.functionCall({
-    contractId,
+  await account.functionCall({
+    contractId: greetingContractId,
     methodName: "register_dst_contract",
     args: {
       chain_name: destinationChainName,
       contract_address: AvalancheGreetingContractAddress,
-      action_name: destinationActionName,
+      action_name: "receiveGreeting",
     },
-    gas: 30000000000000,
+    gas,
   });
 
-  result = await nearAPI.providers.getTransactionLastResult(
-    functionCallResponse
-  );
-  console.log(result);
+  await account.functionCall({
+    contractId: greetingContractId,
+    methodName: "register_permitted_contract",
+    args: {
+      chain_name: destinationChainName,
+      sender: AvalancheGreetingContractAddress,
+      action_name: "receive_greeting",
+    },
+    gas,
+  });
+
+  await account.functionCall({
+    contractId: computeContractId,
+    methodName: "register_dst_contract",
+    args: {
+      action_name: "receive_compute_task",
+      chain_name: destinationChainName,
+      contract_address: AvalancheComputingContractAddress,
+      contract_action_name: "receiveComputeTask",
+    },
+    gas,
+  });
+
+  await account.functionCall({
+    contractId: computeContractId,
+    methodName: "register_dst_contract",
+    args: {
+      action_name: "receive_compute_result",
+      chain_name: destinationChainName,
+      contract_address: AvalancheComputingContractAddress,
+      contract_action_name: "receiveComputeTaskCallback",
+    },
+    gas,
+  });
+  
+  await account.functionCall({
+    contractId: computeContractId,
+    methodName: "register_permitted_contract",
+    args: {
+      chain_name: destinationChainName,
+      sender: AvalancheComputingContractAddress,
+      action_name: "receive_compute_result",
+    },
+    gas,
+  });
+
+  await account.functionCall({
+    contractId: computeContractId,
+    methodName: "register_permitted_contract",
+    args: {
+      chain_name: destinationChainName,
+      sender: AvalancheComputingContractAddress,
+      action_name: "receive_compute_task",
+    },
+    gas,
+  });
 })();
