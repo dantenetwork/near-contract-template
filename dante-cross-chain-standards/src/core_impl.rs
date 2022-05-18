@@ -94,17 +94,24 @@ impl CrossChain {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
         match self.destination_contract.get(&chain_name) {
             Some(mut map) => {
-                if !map.contains_key(&action_name) {
-                    map.insert(
-                        action_name,
-                        DstContract {
-                            contract_address,
-                            action_name: contract_action_name,
-                        },
-                    );
-                } else {
-                    env::panic_str("Already contains");
-                }
+                // if !map.contains_key(&action_name) {
+                //     map.insert(
+                //         action_name,
+                //         DstContract {
+                //             contract_address,
+                //             action_name: contract_action_name,
+                //         },
+                //     );
+                // } else {
+                //     env::panic_str("Already contains");
+                // }
+                map.insert(
+                    action_name,
+                    DstContract {
+                        contract_address,
+                        action_name: contract_action_name,
+                    },
+                );
                 self.destination_contract.insert(&chain_name, &map);
             }
             _ => {
