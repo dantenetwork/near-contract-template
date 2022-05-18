@@ -58,19 +58,18 @@ impl Computation {
             "_nums": nums,
         })
         .to_string();
+        let action_name = "receive_compute_task".to_string();
+        let dst_contract = self
+            .cross
+            .destination_contract
+            .get(&to_chain)
+            .expect("to chain not register");
+        let contract = dst_contract
+            .get(&action_name)
+            .expect("contract not register");
         let content = Content {
-            contract: self
-                .cross
-                .destination_contract
-                .get(&to_chain)
-                .unwrap()
-                .contract_address,
-            action: self
-                .cross
-                .destination_contract
-                .get(&to_chain)
-                .unwrap()
-                .action_name,
+            contract: contract.contract_address.clone(),
+            action: contract.action_name.clone(),
             data,
         };
         self.cross
@@ -82,15 +81,6 @@ impl Computation {
                 GAS_FOR_CALLBACK,
             ))
             .into()
-        // self.cross
-        //     .call_cross_with_session(to_chain, content)
-        //     .and(ext_self::callback(
-        //         nums,
-        //         env::current_account_id(),
-        //         NO_DEPOSIT,
-        //         GAS_FOR_CALLBACK,
-        //     ))
-        //     .into()
     }
 
     pub fn receive_compute_task(&self, nums: Vec<u64>, context: Context) {
@@ -109,17 +99,22 @@ impl Computation {
             sum += num;
         }
         let data = serde_json::json!({
-            "result": sum,
+            "_result": sum,
         })
         .to_string();
-        let destination_contract = self
+
+        let action_name = "receive_compute_task".to_string();
+        let dst_contract = self
             .cross
             .destination_contract
             .get(&context.from_chain)
-            .expect("not register");
+            .expect("to chain not register");
+        let contract = dst_contract
+            .get(&action_name)
+            .expect("contract not register");
         let content = Content {
-            contract: destination_contract.contract_address,
-            action: destination_contract.action_name,
+            contract: contract.contract_address.clone(),
+            action: contract.action_name.clone(),
             data,
         };
         self.cross
@@ -132,12 +127,14 @@ impl Computation {
             env::predecessor_account_id(),
             "Processs by cross chain contract."
         );
+        let session = context.session.unwrap();
+        let id = session.id.unwrap();
         self.compute_task
             .get(&context.id)
             .as_mut()
             .and_then(|task| {
                 task.result = Some(result);
-                self.compute_task.insert(&context.id, task)
+                self.compute_task.insert(&id, task)
             });
     }
 
@@ -156,8 +153,15 @@ impl Computation {
                     .insert(&session_id, &ComputeTask { nums, result: None });
                 session_id
             }
-            _ => env::panic_str("dsafd"),
+            _ => env::panic_str("call omi-chain failed"),
         }
+    }
+
+    pub fn get_dst_contract(&self, chain: String, action_name: String) -> (String, String) {
+        let dst_contract = self.cross.destination_contract.get(&chain).unwrap();
+        // let action_name = "receive_"
+        let contract = dst_contract.get(&action_name).unwrap();
+        (contract.contract_address.clone(), contract.action_name.clone())
     }
 }
 

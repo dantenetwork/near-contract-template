@@ -18,7 +18,7 @@ pub trait CrossChainContract {
 pub struct CrossChain {
     pub owner_id: AccountId,
     pub cross_chain_contract_id: AccountId,
-    pub destination_contract: UnorderedMap<String, DstContract>,
+    pub destination_contract: UnorderedMap<String, HashMap<String, DstContract>>,
     pub permitted_contract: UnorderedMap<String, HashMap<String, HashSet<String>>>,
 }
 
@@ -87,17 +87,45 @@ impl CrossChain {
     pub fn register_dst_contract(
         &mut self,
         chain_name: String,
-        contract_address: String,
         action_name: String,
+        contract_address: String,
+        contract_action_name: String,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
-        self.destination_contract.insert(
-            &chain_name,
-            &DstContract {
-                contract_address,
-                action_name,
-            },
-        );
+        match self.destination_contract.get(&chain_name) {
+            Some(mut map) => {
+                // if !map.contains_key(&action_name) {
+                //     map.insert(
+                //         action_name,
+                //         DstContract {
+                //             contract_address,
+                //             action_name: contract_action_name,
+                //         },
+                //     );
+                // } else {
+                //     env::panic_str("Already contains");
+                // }
+                map.insert(
+                    action_name,
+                    DstContract {
+                        contract_address,
+                        action_name: contract_action_name,
+                    },
+                );
+                self.destination_contract.insert(&chain_name, &map);
+            }
+            _ => {
+                let mut ms = HashMap::new();
+                ms.insert(
+                    action_name,
+                    DstContract {
+                        contract_address,
+                        action_name: contract_action_name,
+                    },
+                );
+                self.destination_contract.insert(&chain_name, &ms);
+            }
+        }
     }
 
     ///////////////////////////////////////////////
