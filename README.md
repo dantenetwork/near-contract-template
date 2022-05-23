@@ -1,23 +1,8 @@
 # NEAR contract template
 
-## Currently
+## Introduction
 
-**This is under construction!**
-
-This repo contains a basic `greeting` smart contract integrated with DANTE cross-chain service.
-
-The basic version developed in `near` is currently available.
-
-## Coming soon
-
-- More functions in `near` version;
-- The high level SDK for `cross-chain contract call` is under developing, that will bring more convenient for developers.
-
-## Usage
-
-Dependencies:
-
-* @dante-contracts
+This is a high level SDK for NEAR developers to build their dApps based on Danta protocol stack, with the help of which dApps built on Near can be extended to Omnichain. 
 
 ### Install
 
@@ -30,23 +15,22 @@ rustup target add wasm32-unknown-unknown
 npm install -g near-cli
 ```
 
-### Compile smart contract
+### Build contract
+* Click [use this templete](https://github.com/dantenetwork/near-contract-template/generate) to create your own project.
+* Refer to the [greeting](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/greeting) or [computing](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/computing) case to build your project.
+
+### Example
+#### Compile smart contract
 
 ```sh
-cd contracts/greeting
+cd examples/greeting
 RUSTFLAGS='-C link-arg=-s' cargo build --target wasm32-unknown-unknown --release
 mkdir -p ./res && cp target/wasm32-unknown-unknown/release/greeting.wasm ./res/
 ```
 
-### Deploy smart contract to NEAR testnet
+#### Deploy smart contract to NEAR testnet
 
 ```sh
-cd contracts/greeting
+cd examples/greeting
 near deploy $CONTRACT_ID --wasmFile res/greeting.wasm --accountId $CONTRACT_ID
-```
-
-### Register greeting contract to DANTE cross-chain service
-
-```sh
-node register/registerToNear.js
 ```

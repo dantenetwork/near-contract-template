@@ -16,6 +16,8 @@ pub struct Context {
     pub from_chain: String,
     pub sender: String,
     pub signer: String,
+    pub contract_id: String,
+    pub action: String,
     pub session: Option<Session>,
 }
 
