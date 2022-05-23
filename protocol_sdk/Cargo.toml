@@ -5,7 +5,7 @@ edition = "2021"
 license = "GPL-3.0"
 categories = ["wasm"]
 description = """
-DANTENETWORK cross chain contracts standard library.
+DANTE protocol stack.
 """
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
