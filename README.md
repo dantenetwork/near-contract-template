@@ -16,7 +16,7 @@ npm install -g near-cli
 ```
 
 ### Build contract
-* Click [use this templete]() to create your own project.
+* Click [use this templete](https://github.com/dantenetwork/near-contract-template/generate) to create your own project.
 * Refer to the [greeting](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/greeting) or [computing](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/computing) case to build your project.
 
 ### Example
