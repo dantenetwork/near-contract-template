@@ -9,25 +9,25 @@ const GAS_FOR_SENT_MESSAGE: Gas = Gas(5_000_000_000_000);
 const NO_DEPOSIT: Balance = 0;
 
 #[ext_contract(ext_cross_contract)]
-pub trait CrossChainContract {
+pub trait OmniChainContract {
     fn send_message(&mut self, to_chain: String, content: Content, session: Option<Session>)
         -> u64;
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
-pub struct CrossChain {
+pub struct OmniChain {
     pub owner_id: AccountId,
-    pub cross_chain_contract_id: AccountId,
+    pub omni_chain_contract_id: AccountId,
     pub destination_contract: UnorderedMap<String, HashMap<String, DstContract>>,
     pub permitted_contract: UnorderedMap<String, HashMap<String, HashSet<String>>>,
 }
 
-impl CrossChain {
+impl OmniChain {
     pub fn new<S, T>(
         owner_id: AccountId,
         destination_contract_prefix: S,
         permitted_contract_prefix: T,
-        cross_chain_contract_id: AccountId,
+        omni_chain_contract_id: AccountId,
     ) -> Self
     where
         S: IntoStorageKey,
@@ -35,14 +35,14 @@ impl CrossChain {
     {
         let this = Self {
             owner_id,
-            cross_chain_contract_id,
+            omni_chain_contract_id,
             destination_contract: UnorderedMap::new(destination_contract_prefix),
             permitted_contract: UnorderedMap::new(permitted_contract_prefix),
         };
         this
     }
 
-    pub fn internal_call_cross_chain(
+    pub fn internal_call_omni_chain(
         &self,
         to_chain: String,
         content: Content,
@@ -52,18 +52,18 @@ impl CrossChain {
             to_chain,
             content,
             session,
-            self.cross_chain_contract_id.clone(),
+            self.omni_chain_contract_id.clone(),
             NO_DEPOSIT,
             GAS_FOR_SENT_MESSAGE,
         )
     }
 
     pub fn call_cross(&self, to_chain: String, content: Content) {
-        self.internal_call_cross_chain(to_chain, content, None);
+        self.internal_call_omni_chain(to_chain, content, None);
     }
 
     pub fn call_cross_with_session(&self, to_chain: String, content: Content) -> Promise {
-        self.internal_call_cross_chain(
+        self.internal_call_omni_chain(
             to_chain,
             content,
             Some(Session {
@@ -74,7 +74,7 @@ impl CrossChain {
     }
 
     pub fn send_response_message(&self, to_chain: String, content: Content, id: u64) {
-        self.internal_call_cross_chain(
+        self.internal_call_omni_chain(
             to_chain,
             content,
             Some(Session {

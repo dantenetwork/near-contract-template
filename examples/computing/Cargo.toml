@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 near-sdk = "4.0.0-pre.7"
-dante-cross-chain-standards = {path = "../../dante-cross-chain-standards"}
+protocol_sdk = {path = "../../protocol_sdk"}
 # near-contract-standards = "4.0.0-pre.7"
 
 [profile.release]

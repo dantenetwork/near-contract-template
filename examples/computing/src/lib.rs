@@ -1,4 +1,3 @@
-use dante_cross_chain_standards::{Content, Context, CrossChain};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::json_types::U128;
@@ -8,6 +7,7 @@ use near_sdk::{
     env, ext_contract, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault,
     PromiseOrValue, PromiseResult,
 };
+use protocol_sdk::{Content, Context, OmniChain};
 
 const GAS_FOR_CALLBACK: Gas = Gas(5_000_000_000_000);
 
@@ -23,7 +23,7 @@ pub struct ComputeTask {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Computation {
-    cross: CrossChain,
+    omni_chain: OmniChain,
     compute_task: UnorderedMap<u64, ComputeTask>,
 }
 
@@ -42,13 +42,13 @@ enum StorageKey {
 #[near_bindgen]
 impl Computation {
     #[init]
-    pub fn new(owner_id: AccountId, cross_chain_contract_id: AccountId) -> Self {
+    pub fn new(owner_id: AccountId, omni_chain_contract_id: AccountId) -> Self {
         Self {
-            cross: CrossChain::new(
+            omni_chain: OmniChain::new(
                 owner_id,
                 StorageKey::DestinationContract,
                 StorageKey::PermittedContract,
-                cross_chain_contract_id,
+                omni_chain_contract_id,
             ),
             compute_task: UnorderedMap::new(StorageKey::Result),
         }
@@ -61,7 +61,7 @@ impl Computation {
         .to_string();
         let action_name = "receive_compute_task".to_string();
         let dst_contract = self
-            .cross
+            .omni_chain
             .destination_contract
             .get(&to_chain)
             .expect("to chain not register");
@@ -73,7 +73,7 @@ impl Computation {
             action: contract.action_name.clone(),
             data,
         };
-        self.cross
+        self.omni_chain
             .call_cross_with_session(to_chain, content)
             .then(ext_self::callback(
                 nums,
@@ -86,11 +86,11 @@ impl Computation {
 
     pub fn receive_compute_task(&self, nums: Vec<U128>, context: Context) {
         assert_eq!(
-            self.cross.cross_chain_contract_id,
+            self.omni_chain.omni_chain_contract_id,
             env::predecessor_account_id(),
             "Processs by cross chain contract"
         );
-        self.cross.assert_register_permitted_contract(
+        self.omni_chain.assert_register_permitted_contract(
             &context.from_chain,
             &context.sender,
             &context.action,
@@ -106,7 +106,7 @@ impl Computation {
 
         let action_name = "receive_compute_result".to_string();
         let dst_contract = self
-            .cross
+            .omni_chain
             .destination_contract
             .get(&context.from_chain)
             .expect("to chain not register");
@@ -118,13 +118,13 @@ impl Computation {
             action: contract.action_name.clone(),
             data,
         };
-        self.cross
+        self.omni_chain
             .send_response_message(context.from_chain, content, context.id);
     }
 
     pub fn receive_compute_result(&mut self, result: U128, context: Context) {
         assert_eq!(
-            self.cross.cross_chain_contract_id,
+            self.omni_chain.omni_chain_contract_id,
             env::predecessor_account_id(),
             "Processs by cross chain contract."
         );
@@ -156,7 +156,7 @@ impl Computation {
     }
 
     pub fn get_dst_contract(&self, chain: String, action_name: String) -> (String, String) {
-        let dst_contract = self.cross.destination_contract.get(&chain).unwrap();
+        let dst_contract = self.omni_chain.destination_contract.get(&chain).unwrap();
         // let action_name = "receive_"
         let contract = dst_contract.get(&action_name).unwrap();
         (
@@ -166,4 +166,4 @@ impl Computation {
     }
 }
 
-dante_cross_chain_standards::impl_cross_chain_register!(Computation, cross);
+protocol_sdk::impl_omni_chain_register!(Computation, omni_chain);

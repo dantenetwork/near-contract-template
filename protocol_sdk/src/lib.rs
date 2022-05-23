@@ -2,7 +2,7 @@ pub mod core_impl;
 pub mod macros;
 mod types;
 
-pub use self::core_impl::CrossChain;
+pub use self::core_impl::OmniChain;
 pub use self::types::{Content, Context, Session};
 
 pub trait RegisterCore {

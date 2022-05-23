@@ -23,7 +23,7 @@ npm install -g near-cli
 #### Compile smart contract
 
 ```sh
-cd contracts/greeting
+cd examples/greeting
 RUSTFLAGS='-C link-arg=-s' cargo build --target wasm32-unknown-unknown --release
 mkdir -p ./res && cp target/wasm32-unknown-unknown/release/greeting.wasm ./res/
 ```
@@ -31,6 +31,6 @@ mkdir -p ./res && cp target/wasm32-unknown-unknown/release/greeting.wasm ./res/
 #### Deploy smart contract to NEAR testnet
 
 ```sh
-cd contracts/greeting
+cd examples/greeting
 near deploy $CONTRACT_ID --wasmFile res/greeting.wasm --accountId $CONTRACT_ID
 ```

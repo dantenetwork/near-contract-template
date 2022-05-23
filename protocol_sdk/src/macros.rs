@@ -1,7 +1,7 @@
 /// The core methods for a basic Register cross information. Extension standards may be
 /// added in addition to this macro.
 #[macro_export]
-macro_rules! impl_cross_chain_register {
+macro_rules! impl_omni_chain_register {
     ($contract: ident, $cross: ident) => {
         use $crate::RegisterCore;
 

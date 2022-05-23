@@ -1,9 +1,9 @@
-use dante_cross_chain_standards::{Content, Context, CrossChain};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::serde_json::json;
 use near_sdk::{env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault};
+use protocol_sdk::{Content, Context, OmniChain};
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(tag = "type", crate = "near_sdk::serde")]
@@ -17,7 +17,7 @@ pub struct GreetingData {
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Greeting {
-    cross: CrossChain,
+    omni_chain: OmniChain,
     greeting_data: UnorderedMap<String, GreetingData>,
 }
 
@@ -31,13 +31,13 @@ enum StorageKey {
 #[near_bindgen]
 impl Greeting {
     #[init]
-    pub fn new(owner_id: AccountId, cross_chain_contract_id: AccountId) -> Self {
+    pub fn new(owner_id: AccountId, omni_chain_contract_id: AccountId) -> Self {
         Self {
-            cross: CrossChain::new(
+            omni_chain: OmniChain::new(
                 owner_id,
                 StorageKey::DestinationContract,
                 StorageKey::PermittedContract,
-                cross_chain_contract_id,
+                omni_chain_contract_id,
             ),
             greeting_data: UnorderedMap::new(StorageKey::GreetingData),
         }
@@ -57,7 +57,7 @@ impl Greeting {
         .to_string();
         let action_name = "send_greeting".to_string();
         let dst_contract = self
-            .cross
+            .omni_chain
             .destination_contract
             .get(&to_chain)
             .expect("to chain not register");
@@ -69,16 +69,16 @@ impl Greeting {
             action: contract.action_name.clone(),
             data: greeting_action_data,
         };
-        self.cross.call_cross(to_chain, content);
+        self.omni_chain.call_cross(to_chain, content);
     }
 
     pub fn receive_greeting(&mut self, greeting: Vec<String>, context: Context) {
         assert_eq!(
             env::predecessor_account_id(),
-            self.cross.cross_chain_contract_id,
+            self.omni_chain.omni_chain_contract_id,
             "Processs by cross chain contract"
         );
-        self.cross.assert_register_permitted_contract(
+        self.omni_chain.assert_register_permitted_contract(
             &context.from_chain,
             &context.sender,
             &context.action,
@@ -97,4 +97,4 @@ impl Greeting {
     }
 }
 
-dante_cross_chain_standards::impl_cross_chain_register!(Greeting, cross);
+protocol_sdk::impl_omni_chain_register!(Greeting, omni_chain);
