@@ -15,7 +15,7 @@ rustup target add wasm32-unknown-unknown
 npm install -g near-cli
 ```
 
-### Build contract
+### Omnichain contract development
 * Click [use this templete](https://github.com/dantenetwork/near-contract-template/generate) to create your own project.
 * Refer to the [greeting](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/greeting) or [computing](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/computing) case to build your project.
 
