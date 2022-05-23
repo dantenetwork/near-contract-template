@@ -17,7 +17,7 @@ npm install -g near-cli
 
 ### Omnichain contract development
 * Click [use this templete](https://github.com/dantenetwork/near-contract-template/generate) to create your own project.
-* Refer to the [greeting](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/greeting) or [computing](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/computing) case to build your project.
+* Refer to the [greeting](https://github.com/dantenetwork/near-contract-template/tree/main/examples/greeting) or [computing](https://github.com/dantenetwork/near-contract-template/tree/main/examples/computing) case to build your project.
 
 ### Example
 #### Compile smart contract
