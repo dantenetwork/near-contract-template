@@ -51,10 +51,16 @@ impl Greeting {
      * @param title - greeting date
      */
     pub fn send_greeting(&self, to_chain: String, title: String, content: String, date: String) {
-        let greeting_action_data = json!({
-            "greeting": ["NEAR".to_string(), title, content, date]
-        })
-        .to_string();
+        let from_chain = "NEAR".to_string();
+        let greeting_data: String;
+        if "DFINITYTEST".to_string().eq(&to_chain) {
+            greeting_data = format!("({}, {}, {}, {})", from_chain, title, content, date);
+        } else {
+            greeting_data = json!({
+                "greeting": [from_chain, title, content, date]
+            })
+            .to_string();
+        }
         let action_name = "send_greeting".to_string();
         let dst_contract = self
             .omni_chain
@@ -67,7 +73,7 @@ impl Greeting {
         let content = Content {
             contract: contract.contract_address.clone(),
             action: contract.action_name.clone(),
-            data: greeting_action_data,
+            data: greeting_data,
         };
         self.omni_chain.call_cross(to_chain, content);
     }
