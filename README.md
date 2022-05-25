@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This is a high level SDK for NEAR developers to build their dApps based on Danta protocol stack, with the help of which dApps built on Near can be extended to Omnichain. 
+This is a high level SDK for NEAR developers to build their dApps based on Dante protocol stack, with the help of which dApps built on Near can be extended to Omnichain. 
 
 ### Install
 
