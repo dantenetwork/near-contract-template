@@ -53,8 +53,11 @@ impl Greeting {
     pub fn send_greeting(&self, to_chain: String, title: String, content: String, date: String) {
         let from_chain = "NEAR".to_string();
         let greeting_data: String;
-        if "DFINITYTEST".to_string().eq(&to_chain) {
-            greeting_data = format!("({}, {}, {}, {})", from_chain, title, content, date);
+        if "DFINITY".to_string().eq(&to_chain) {
+            greeting_data = format!(
+                "(\"{}\", \"{}\", \"{}\", \"{}\")",
+                from_chain, title, content, date
+            );
         } else {
             greeting_data = json!({
                 "greeting": [from_chain, title, content, date]
