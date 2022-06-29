@@ -62,13 +62,18 @@ impl OmniChain {
         self.internal_call_omni_chain(to_chain, content, None);
     }
 
-    pub fn call_cross_with_session(&self, to_chain: String, content: Content) -> Promise {
+    pub fn call_cross_with_session(
+        &self,
+        to_chain: String,
+        content: Content,
+        callback: String,
+    ) -> Promise {
         self.internal_call_omni_chain(
             to_chain,
             content,
             Some(Session {
-                res_type: 1,
-                id: None,
+                id: 0,
+                callback: Some(callback),
             }),
         )
     }
@@ -78,8 +83,8 @@ impl OmniChain {
             to_chain,
             content,
             Some(Session {
-                res_type: 2,
-                id: Some(id),
+                id: id,
+                callback: None,
             }),
         );
     }
