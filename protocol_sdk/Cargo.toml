@@ -11,3 +11,4 @@ DANTE protocol stack.
 
 [dependencies]
 near-sdk = "4.0.0-pre.7"
+hex = "0.4.3"
