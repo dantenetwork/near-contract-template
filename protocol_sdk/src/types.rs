@@ -1,7 +1,7 @@
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize,};
-use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, AccountId, PublicKey};
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::env;
 use near_sdk::json_types::U128;
+use near_sdk::serde::{Deserialize, Serialize};
 // use near_sdk::serde_json::{self, json, Value};
 // use crate::payload;
 
@@ -59,15 +59,15 @@ pub struct DstContract {
     pub action_name: String,
 }
 
-#[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
-#[serde(crate = "near_sdk::serde")]
-pub struct Field(Vec<Value>);
+// #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
+// #[serde(crate = "near_sdk::serde")]
+// pub struct Field(Vec<Value>);
 
-impl Field {
-    pub fn new(vec: Vec<Value>) -> Field {
-        Field(vec)
-    }
-}
+// impl Field {
+//     pub fn new(vec: Vec<Value>) -> Field {
+//         Field(vec)
+//     }
+// }
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub enum Value {
@@ -81,10 +81,16 @@ pub enum Value {
     Int16(i16),
     Int32(i32),
     Int64(i64),
-    // Int128(i128),
-    PublicKey(PublicKey),
-    AccountId(AccountId),
-    Vec(Field),
+    VecString(Vec<String>),
+    VecUint8(Vec<u8>),
+    VecUint16(Vec<u16>),
+    VecUint32(Vec<u32>),
+    VecUint64(Vec<u64>),
+    VecUint128(Vec<U128>),
+    VecInt8(Vec<i8>),
+    VecInt16(Vec<i16>),
+    VecInt32(Vec<i32>),
+    VecInt64(Vec<i64>),
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
@@ -138,7 +144,7 @@ impl Message {
 }
 
 impl Value {
-    pub fn into<T: ValueType>(&self) -> Option<T::Type> {
+    pub fn get_value<T: ValueType>(&self) -> Option<T::Type> {
         T::get_value::<T>(self)
     }
 }
@@ -269,10 +275,108 @@ impl ValueType for i64 {
 //     }
 // }
 
-impl ValueType for Field {
-    type Type = Field;
+impl ValueType for Vec<String> {
+    type Type = Vec<String>;
     fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Vec(val) = type_value.clone() {
+        if let Value::VecString(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<u8> {
+    type Type = Vec<u8>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecUint8(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<u16> {
+    type Type = Vec<u16>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecUint16(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<u32> {
+    type Type = Vec<u32>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecUint32(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<u64> {
+    type Type = Vec<u64>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecUint64(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<U128> {
+    type Type = Vec<U128>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecUint128(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<i8> {
+    type Type = Vec<i8>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecInt8(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<i16> {
+    type Type = Vec<i16>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecInt16(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Vec<i32> {
+    type Type = Vec<i32>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecInt32(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+impl ValueType for Vec<i64> {
+    type Type = Vec<i64>;
+    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+        if let Value::VecInt64(val) = type_value.clone() {
             Some(val)
         } else {
             None
