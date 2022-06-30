@@ -2,7 +2,7 @@ use crate::types::{Content, DstContract, Session};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, ext_contract, AccountId, Balance, Gas, IntoStorageKey, Promise};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 const GAS_FOR_SENT_MESSAGE: Gas = Gas(5_000_000_000_000);
 
@@ -19,7 +19,7 @@ pub struct OmniChain {
     pub owner_id: AccountId,
     pub omni_chain_contract_id: AccountId,
     pub destination_contract: UnorderedMap<String, HashMap<String, DstContract>>,
-    pub permitted_contract: UnorderedMap<(String, String), Vec<String>>,
+    pub permitted_contract: UnorderedMap<String, HashMap<String, HashSet<String>>>,
 }
 
 impl OmniChain {
@@ -62,18 +62,13 @@ impl OmniChain {
         self.internal_call_omni_chain(to_chain, content, None);
     }
 
-    pub fn call_cross_with_session(
-        &self,
-        to_chain: String,
-        content: Content,
-        callback: String,
-    ) -> Promise {
+    pub fn call_cross_with_session(&self, to_chain: String, content: Content) -> Promise {
         self.internal_call_omni_chain(
             to_chain,
             content,
             Some(Session {
-                id: 0,
-                callback: Some(callback),
+                res_type: 1,
+                id: None,
             }),
         )
     }
@@ -83,8 +78,8 @@ impl OmniChain {
             to_chain,
             content,
             Some(Session {
-                id: id,
-                callback: None,
+                res_type: 2,
+                id: Some(id),
             }),
         );
     }
@@ -150,15 +145,25 @@ impl OmniChain {
         action_name: String,
     ) {
         // assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        let key = (chain_name, sender);
-        let mut actions = Vec::new();
-        if let Some(acts) = self.permitted_contract.get(&key) {
-            assert!(!actions.contains(&action_name), "Already exist");
-            actions.extend(acts.into_iter());
+        if let Some(mut contracts) = self.permitted_contract.get(&chain_name) {
+            // if let action_name
+            if let Some(actions) = contracts.get_mut(&sender) {
+                assert!(!actions.contains(&action_name), "Already exist");
+                actions.insert(action_name);
+                // contracts.insert(sender, *actions);
+            } else {
+                let mut hs = HashSet::new();
+                hs.insert(action_name);
+                contracts.insert(sender, hs);
+            }
+            self.permitted_contract.insert(&chain_name, &contracts);
         } else {
-            actions.push(action_name);
+            let mut hs = HashSet::new();
+            hs.insert(action_name);
+            let mut hm = HashMap::new();
+            hm.insert(sender, hs);
+            self.permitted_contract.insert(&chain_name, &hm);
         }
-        self.permitted_contract.insert(&key, &actions);
     }
 
     pub fn assert_register_permitted_contract(
@@ -167,8 +172,13 @@ impl OmniChain {
         sender: &String,
         action: &String,
     ) {
-        let key = (chain_name.clone(), sender.clone());
-        let actions = self.permitted_contract.get(&key).unwrap_or(Vec::new());
+        let permitted_contract = self
+            .permitted_contract
+            .get(chain_name)
+            .expect("Not register permitted contract");
+        let actions = permitted_contract
+            .get(sender)
+            .expect("message sender not register");
         assert!(actions.contains(action), "{} not register", action);
     }
 }

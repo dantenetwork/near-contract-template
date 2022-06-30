@@ -2,11 +2,12 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::serde_json;
 use near_sdk::{
     env, ext_contract, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault,
     PromiseOrValue, PromiseResult,
 };
-use protocol_sdk::{Content, Context, OmniChain, Payload, Value};
+use protocol_sdk::{Content, Context, OmniChain};
 
 const GAS_FOR_CALLBACK: Gas = Gas(5_000_000_000_000);
 
@@ -54,8 +55,10 @@ impl Computation {
     }
 
     pub fn send_compute_task(&mut self, to_chain: String, nums: Vec<U128>) -> PromiseOrValue<u64> {
-        let mut payload = Payload::new();
-        payload.push_item("_nums".to_string(), Value::VecUint128(nums.clone()));
+        let data = serde_json::json!({
+            "_nums": nums,
+        })
+        .to_string();
         let action_name = "receive_compute_task".to_string();
         let dst_contract = self
             .omni_chain
@@ -68,10 +71,10 @@ impl Computation {
         let content = Content {
             contract: contract.contract_address.clone(),
             action: contract.action_name.clone(),
-            data: payload.to_bytes(),
+            data,
         };
         self.omni_chain
-            .call_cross_with_session(to_chain, content, action_name)
+            .call_cross_with_session(to_chain, content)
             .then(ext_self::callback(
                 nums,
                 env::current_account_id(),
@@ -81,7 +84,7 @@ impl Computation {
             .into()
     }
 
-    pub fn receive_compute_task(&self, payload: Payload, context: Context) {
+    pub fn receive_compute_task(&self, nums: Vec<U128>, context: Context) {
         assert_eq!(
             self.omni_chain.omni_chain_contract_id,
             env::predecessor_account_id(),
@@ -92,17 +95,14 @@ impl Computation {
             &context.sender,
             &context.action,
         );
-
-        let item = payload.get_item("nums".to_string()).unwrap();
-        let nums = item.get_value::<Vec<U128>>().unwrap();
-
         let mut sum: U128 = U128(0);
         for num in nums {
             sum.0 += num.0;
         }
-
-        let mut payload = Payload::new();
-        payload.push_item("_result".to_string(), Value::Uint128(sum));
+        let data = serde_json::json!({
+            "_result": sum,
+        })
+        .to_string();
 
         let action_name = "receive_compute_result".to_string();
         let dst_contract = self
@@ -115,23 +115,21 @@ impl Computation {
             .expect("contract not register");
         let content = Content {
             contract: contract.contract_address.clone(),
-            action: context.session.callback.unwrap(),
-            data: payload.to_bytes(),
+            action: contract.action_name.clone(),
+            data,
         };
         self.omni_chain
             .send_response_message(context.from_chain, content, context.id);
     }
 
-    pub fn receive_compute_result(&mut self, payload: Payload, context: Context) {
+    pub fn receive_compute_result(&mut self, result: U128, context: Context) {
         assert_eq!(
             self.omni_chain.omni_chain_contract_id,
             env::predecessor_account_id(),
             "Processs by cross chain contract."
         );
-        let item = payload.get_item("result".to_string()).unwrap();
-        let result = item.get_value::<U128>().unwrap();
-        let session = context.session;
-        let id = session.id;
+        let session = context.session.unwrap();
+        let id = session.id.unwrap();
         self.compute_task.get(&id).as_mut().and_then(|task| {
             task.result = Some(result);
             self.compute_task.insert(&id, task)
