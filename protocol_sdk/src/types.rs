@@ -10,7 +10,7 @@ use near_sdk::serde::{Deserialize, Serialize};
 pub struct Content {
     pub contract: String,
     pub action: String,
-    pub data: Vec<u8>,
+    pub data: Payload,
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
@@ -96,40 +96,30 @@ pub enum Value {
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct MessageItem {
-    pub n: String,
-    pub v: Value,
+    pub name: String,
+    pub value: Value,
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
-pub struct Payload {
-    pub items: Vec<MessageItem>,
-}
+pub struct Payload(Vec<MessageItem>);
 
 impl Payload {
     pub fn new() -> Payload {
-        Payload { items: Vec::new() }
+        Payload(Vec::new())
     }
 
-    pub fn to_bytes(&self) -> Vec<u8> {
-        self.try_to_vec().unwrap()
-    }
-
-    pub fn decode(data: &Vec<u8>) -> Payload {
-        Payload::try_from_slice(data.as_slice()).unwrap()
-    }
-
-    pub fn push_item(&mut self, n: String, v: Value) {
-        let item = MessageItem { n, v };
-        if !self.items.contains(&item) {
-            self.items.push(item)
+    pub fn push_item(&mut self, name: String, value: Value) {
+        let item = MessageItem { name, value };
+        if !self.0.contains(&item) {
+            self.0.push(item)
         }
     }
 
-    pub fn get_item(&self, n: String) -> Option<Value> {
-        for item in self.items.iter() {
-            if item.n == n {
-                return Some(item.v.clone());
+    pub fn get_item(&self, name: String) -> Option<Value> {
+        for item in self.0.iter() {
+            if item.name == name {
+                return Some(item.value.clone());
             }
         }
         None
@@ -145,18 +135,18 @@ impl Message {
 
 impl Value {
     pub fn get_value<T: ValueType>(&self) -> Option<T::Type> {
-        T::get_value::<T>(self)
+        T::get_value(self)
     }
 }
 
 pub trait ValueType {
     type Type;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type>;
+    fn get_value(type_value: &Value) -> Option<Self::Type>;
 }
 
 impl ValueType for String {
     type Type = String;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::String(val) = type_value.clone() {
             Some(val)
         } else {
@@ -167,7 +157,7 @@ impl ValueType for String {
 
 impl ValueType for u8 {
     type Type = u8;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Uint8(val) = *type_value {
             Some(val)
         } else {
@@ -178,7 +168,7 @@ impl ValueType for u8 {
 
 impl ValueType for u16 {
     type Type = u16;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Uint16(val) = *type_value {
             Some(val)
         } else {
@@ -189,7 +179,7 @@ impl ValueType for u16 {
 
 impl ValueType for u32 {
     type Type = u32;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Uint32(val) = *type_value {
             Some(val)
         } else {
@@ -200,7 +190,7 @@ impl ValueType for u32 {
 
 impl ValueType for u64 {
     type Type = u64;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Uint64(val) = *type_value {
             Some(val)
         } else {
@@ -211,7 +201,7 @@ impl ValueType for u64 {
 
 impl ValueType for U128 {
     type Type = U128;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Uint128(val) = *type_value {
             Some(val)
         } else {
@@ -222,7 +212,7 @@ impl ValueType for U128 {
 
 impl ValueType for i8 {
     type Type = i8;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Int8(val) = *type_value {
             Some(val)
         } else {
@@ -233,7 +223,7 @@ impl ValueType for i8 {
 
 impl ValueType for i16 {
     type Type = i16;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Int16(val) = *type_value {
             Some(val)
         } else {
@@ -244,7 +234,7 @@ impl ValueType for i16 {
 
 impl ValueType for i32 {
     type Type = i32;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Int32(val) = *type_value {
             Some(val)
         } else {
@@ -255,7 +245,7 @@ impl ValueType for i32 {
 
 impl ValueType for i64 {
     type Type = i64;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Int64(val) = *type_value {
             Some(val)
         } else {
@@ -266,7 +256,7 @@ impl ValueType for i64 {
 
 // impl ValueType for i128 {
 //     type Type = i128;
-//     fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+//     fn get_value(type_value: &Value) -> Option<Self::Type> {
 //         if let Value::Int128(val) = *type_value {
 //             Some(val)
 //         } else {
@@ -277,7 +267,7 @@ impl ValueType for i64 {
 
 impl ValueType for Vec<String> {
     type Type = Vec<String>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecString(val) = type_value.clone() {
             Some(val)
         } else {
@@ -288,7 +278,7 @@ impl ValueType for Vec<String> {
 
 impl ValueType for Vec<u8> {
     type Type = Vec<u8>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecUint8(val) = type_value.clone() {
             Some(val)
         } else {
@@ -299,7 +289,7 @@ impl ValueType for Vec<u8> {
 
 impl ValueType for Vec<u16> {
     type Type = Vec<u16>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecUint16(val) = type_value.clone() {
             Some(val)
         } else {
@@ -310,7 +300,7 @@ impl ValueType for Vec<u16> {
 
 impl ValueType for Vec<u32> {
     type Type = Vec<u32>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecUint32(val) = type_value.clone() {
             Some(val)
         } else {
@@ -321,7 +311,7 @@ impl ValueType for Vec<u32> {
 
 impl ValueType for Vec<u64> {
     type Type = Vec<u64>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecUint64(val) = type_value.clone() {
             Some(val)
         } else {
@@ -332,7 +322,7 @@ impl ValueType for Vec<u64> {
 
 impl ValueType for Vec<U128> {
     type Type = Vec<U128>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecUint128(val) = type_value.clone() {
             Some(val)
         } else {
@@ -343,7 +333,7 @@ impl ValueType for Vec<U128> {
 
 impl ValueType for Vec<i8> {
     type Type = Vec<i8>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecInt8(val) = type_value.clone() {
             Some(val)
         } else {
@@ -354,7 +344,7 @@ impl ValueType for Vec<i8> {
 
 impl ValueType for Vec<i16> {
     type Type = Vec<i16>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecInt16(val) = type_value.clone() {
             Some(val)
         } else {
@@ -365,7 +355,7 @@ impl ValueType for Vec<i16> {
 
 impl ValueType for Vec<i32> {
     type Type = Vec<i32>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecInt32(val) = type_value.clone() {
             Some(val)
         } else {
@@ -375,7 +365,7 @@ impl ValueType for Vec<i32> {
 }
 impl ValueType for Vec<i64> {
     type Type = Vec<i64>;
-    fn get_value<Type>(type_value: &Value) -> Option<Self::Type> {
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecInt64(val) = type_value.clone() {
             Some(val)
         } else {
