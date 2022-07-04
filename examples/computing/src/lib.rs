@@ -68,7 +68,7 @@ impl Computation {
         let content = Content {
             contract: contract.contract_address.clone(),
             action: contract.action_name.clone(),
-            data: payload.to_bytes(),
+            data: payload,
         };
         self.omni_chain
             .call_cross_with_session(to_chain, content, action_name)
@@ -116,7 +116,7 @@ impl Computation {
         let content = Content {
             contract: contract.contract_address.clone(),
             action: context.session.callback.unwrap(),
-            data: payload.to_bytes(),
+            data: payload,
         };
         self.omni_chain
             .send_response_message(context.from_chain, content, context.id);

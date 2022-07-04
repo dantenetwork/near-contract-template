@@ -69,7 +69,7 @@ impl Greeting {
         let content = Content {
             contract: contract.contract_address.clone(),
             action: contract.action_name.clone(),
-            data: payload.to_bytes(),
+            data: payload,
         };
         self.omni_chain.call_cross(to_chain, content);
     }
