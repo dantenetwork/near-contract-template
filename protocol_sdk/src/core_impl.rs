@@ -155,9 +155,8 @@ impl OmniChain {
         if let Some(acts) = self.permitted_contract.get(&key) {
             assert!(!actions.contains(&action_name), "Already exist");
             actions.extend(acts.into_iter());
-        } else {
-            actions.push(action_name);
         }
+        actions.push(action_name);
         self.permitted_contract.insert(&key, &actions);
     }
 
