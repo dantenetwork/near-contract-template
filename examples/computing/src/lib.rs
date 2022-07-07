@@ -110,7 +110,7 @@ impl Computation {
             data: payload,
         };
         self.omni_chain
-            .send_response_message(context.from_chain, content, context.id);
+            .send_response_message(context.from_chain, content, context.session.id);
     }
 
     pub fn receive_compute_result(&mut self, payload: Payload, context: Context) {
@@ -166,7 +166,7 @@ impl Computation {
             .map(|res| res)
             .collect()
     }
-    
+
     pub fn clear_compute_task(&mut self) {
         self.compute_task.clear();
     }

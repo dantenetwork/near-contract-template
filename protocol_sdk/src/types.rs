@@ -53,21 +53,21 @@ pub struct Context {
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
-#[serde(tag = "type", crate = "near_sdk::serde")]
+#[serde(crate = "near_sdk::serde")]
 pub struct DstContract {
     pub contract_address: String,
     pub action_name: String,
 }
 
-// #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
-// #[serde(crate = "near_sdk::serde")]
-// pub struct Field(Vec<Value>);
+#[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Field(Vec<MessageItem>);
 
-// impl Field {
-//     pub fn new(vec: Vec<Value>) -> Field {
-//         Field(vec)
-//     }
-// }
+impl Field {
+    pub fn new() -> Field {
+        Field(Vec::new())
+    }
+}
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub enum Value {
@@ -91,6 +91,7 @@ pub enum Value {
     VecInt16(Vec<i16>),
     VecInt32(Vec<i32>),
     VecInt64(Vec<i64>),
+    Filed(Field),
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
