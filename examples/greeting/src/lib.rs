@@ -96,7 +96,7 @@ impl Greeting {
     pub fn get_greeting(&self, from_chain: String, id: u64) -> Option<GreetingData> {
         self.greeting_data.get(&(from_chain, id))
     }
-    
+
     pub fn clear_greeting_data(&mut self) {
         self.greeting_data.clear();
     }
