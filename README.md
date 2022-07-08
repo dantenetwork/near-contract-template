@@ -2,7 +2,6 @@
 
 NEAR protocol SDK makes it easy for NEAR developers in the NEAR Ecosystem to use Dante Network to interact with other chains, such as POLKADOT, Ethereum, Avalanche, Flow, etc.
 
-
 ## Install dependency
 
 ```sh
@@ -18,6 +17,7 @@ Click [use this templete](https://github.com/dantenetwork/near-contract-template
 
 * Create your project in [project](./project). You can find more details there.
 * Refer to the [greeting](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/greeting) or [computing](https://github.com/dantenetwork/near-contract-template/tree/main/contracts/computing) case to build your project.
+
 
 Or you  can use this SDK as a library by adding
 
