@@ -68,6 +68,25 @@ pub struct DstContract {
 //         Field(vec)
 //     }
 // }
+
+#[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
+#[serde(crate = "near_sdk::serde")]
+pub struct Address(String, u8);
+
+impl Address {
+    pub fn new(address: String, address_type: u8) -> Self {
+        Address(address, address_type)
+    }
+
+    pub fn get(&self) -> String {
+        self.0.clone()
+    }
+
+    pub fn get_type(&self) -> u8 {
+        self.1
+    }
+}
+
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub enum Value {
@@ -91,6 +110,7 @@ pub enum Value {
     VecInt16(Vec<i16>),
     VecInt32(Vec<i32>),
     VecInt64(Vec<i64>),
+    Address(Address),
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
@@ -264,6 +284,16 @@ impl ValueType for i64 {
 //         }
 //     }
 // }
+impl ValueType for (String, u8) {
+    type Type = i64;
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
+        if let Value::Int64(val) = *type_value {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
 
 impl ValueType for Vec<String> {
     type Type = Vec<String>;
@@ -363,10 +393,22 @@ impl ValueType for Vec<i32> {
         }
     }
 }
+
 impl ValueType for Vec<i64> {
     type Type = Vec<i64>;
     fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecInt64(val) = type_value.clone() {
+            Some(val)
+        } else {
+            None
+        }
+    }
+}
+
+impl ValueType for Address {
+    type Type = Address;
+    fn get_value(type_value: &Value) -> Option<Self::Type> {
+        if let Value::Address(val) = type_value.clone() {
             Some(val)
         } else {
             None
