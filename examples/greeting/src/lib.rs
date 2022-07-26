@@ -1,7 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
 use near_sdk::serde::{Deserialize, Serialize};
-use near_sdk::{env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault};
+use near_sdk::{env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, PromiseOrValue};
 use protocol_sdk::{Content, Context, OmniChain, Payload, Value};
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
@@ -49,7 +49,13 @@ impl Greeting {
      * @param title - greeting content
      * @param title - greeting date
      */
-    pub fn send_greeting(&self, to_chain: String, title: String, content: String, date: String) {
+    pub fn send_greeting(
+        &self,
+        to_chain: String,
+        title: String,
+        content: String,
+        date: String,
+    ) -> PromiseOrValue<u64> {
         let mut payload = Payload::new();
         let greeting_data = Value::VecString(vec!["NEARTEST".to_string(), title, content, date]);
         payload.push_item("greeting".to_string(), greeting_data);
@@ -67,7 +73,7 @@ impl Greeting {
             action: contract.action_name.clone(),
             data: payload,
         };
-        self.omni_chain.call_cross(to_chain, content);
+        self.omni_chain.call_cross(to_chain, content).into()
     }
 
     pub fn receive_greeting(&mut self, payload: Payload, context: Context) {
