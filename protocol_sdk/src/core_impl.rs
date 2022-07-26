@@ -58,8 +58,8 @@ impl OmniChain {
         )
     }
 
-    pub fn call_cross(&self, to_chain: String, content: Content) {
-        self.internal_call_omni_chain(to_chain, content, None);
+    pub fn call_cross(&self, to_chain: String, content: Content) -> Promise {
+        self.internal_call_omni_chain(to_chain, content, None)
     }
 
     pub fn call_cross_with_session(
