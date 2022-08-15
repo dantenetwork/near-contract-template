@@ -144,6 +144,37 @@ impl Payload {
         }
         None
     }
+
+    pub fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes: Vec<u8> = Vec::new();
+        for item in self.0.iter() {
+            let value_raw_bytes = match item.value.clone() {
+                Value::String(value) => value.into_raw_data(),
+                Value::Uint8(value) => value.into_raw_data(),
+                Value::Uint16(value) => value.into_raw_data(),
+                Value::Uint32(value) => value.into_raw_data(),
+                Value::Uint64(value) => value.into_raw_data(),
+                Value::Uint128(value) => value.into_raw_data(),
+                Value::Int8(value) => value.into_raw_data(),
+                Value::Int16(value) => value.into_raw_data(),
+                Value::Int32(value) => value.into_raw_data(),
+                Value::Int64(value) => value.into_raw_data(),
+                Value::VecString(value) => value.into_raw_data(),
+                Value::VecUint8(value) => value.into_raw_data(),
+                Value::VecUint16(value) => value.into_raw_data(),
+                Value::VecUint32(value) => value.into_raw_data(),
+                Value::VecUint64(value) => value.into_raw_data(),
+                Value::VecUint128(value) => value.into_raw_data(),
+                Value::VecInt8(value) => value.into_raw_data(),
+                Value::VecInt16(value) => value.into_raw_data(),
+                Value::VecInt32(value) => value.into_raw_data(),
+                Value::VecInt64(value) => value.into_raw_data(),
+                Value::Address(value) => value.into_raw_data(),
+            };
+            raw_bytes.extend(value_raw_bytes);
+        }
+        raw_bytes
+    }
 }
 
 impl Message {
@@ -162,6 +193,7 @@ impl Value {
 pub trait ValueType {
     type Type;
     fn get_value(type_value: &Value) -> Option<Self::Type>;
+    fn into_raw_data(&self) -> Vec<u8>;
 }
 
 impl ValueType for String {
@@ -172,6 +204,9 @@ impl ValueType for String {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        Vec::from(self.as_bytes())
     }
 }
 
@@ -184,6 +219,9 @@ impl ValueType for u8 {
             None
         }
     }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
+    }
 }
 
 impl ValueType for u16 {
@@ -194,6 +232,9 @@ impl ValueType for u16 {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
     }
 }
 
@@ -206,6 +247,9 @@ impl ValueType for u32 {
             None
         }
     }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
+    }
 }
 
 impl ValueType for u64 {
@@ -216,6 +260,9 @@ impl ValueType for u64 {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
     }
 }
 
@@ -228,6 +275,10 @@ impl ValueType for U128 {
             None
         }
     }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.0.to_be_bytes().to_vec()
+    }
 }
 
 impl ValueType for i8 {
@@ -238,6 +289,9 @@ impl ValueType for i8 {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
     }
 }
 
@@ -250,6 +304,9 @@ impl ValueType for i16 {
             None
         }
     }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
+    }
 }
 
 impl ValueType for i32 {
@@ -261,6 +318,9 @@ impl ValueType for i32 {
             None
         }
     }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
+    }
 }
 
 impl ValueType for i64 {
@@ -271,6 +331,9 @@ impl ValueType for i64 {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        self.to_be_bytes().to_vec()
     }
 }
 
@@ -284,16 +347,6 @@ impl ValueType for i64 {
 //         }
 //     }
 // }
-impl ValueType for (String, u8) {
-    type Type = i64;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Int64(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-}
 
 impl ValueType for Vec<String> {
     type Type = Vec<String>;
@@ -303,6 +356,13 @@ impl ValueType for Vec<String> {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.into_iter() {
+            raw_bytes.extend(value.as_bytes());
+        }
+        raw_bytes
     }
 }
 
@@ -315,6 +375,13 @@ impl ValueType for Vec<u8> {
             None
         }
     }
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.push(*value);
+        }
+        raw_bytes
+    }
 }
 
 impl ValueType for Vec<u16> {
@@ -325,6 +392,14 @@ impl ValueType for Vec<u16> {
         } else {
             None
         }
+    }
+    
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
     }
 }
 
@@ -337,6 +412,14 @@ impl ValueType for Vec<u32> {
             None
         }
     }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
+    }
 }
 
 impl ValueType for Vec<u64> {
@@ -347,6 +430,14 @@ impl ValueType for Vec<u64> {
         } else {
             None
         }
+    }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
     }
 }
 
@@ -359,6 +450,14 @@ impl ValueType for Vec<U128> {
             None
         }
     }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.0.to_be_bytes().to_vec());
+        }
+        raw_bytes
+    }
 }
 
 impl ValueType for Vec<i8> {
@@ -369,6 +468,14 @@ impl ValueType for Vec<i8> {
         } else {
             None
         }
+    }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
     }
 }
 
@@ -381,6 +488,14 @@ impl ValueType for Vec<i16> {
             None
         }
     }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
+    }
 }
 
 impl ValueType for Vec<i32> {
@@ -391,6 +506,14 @@ impl ValueType for Vec<i32> {
         } else {
             None
         }
+    }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
     }
 }
 
@@ -403,6 +526,14 @@ impl ValueType for Vec<i64> {
             None
         }
     }
+
+    fn into_raw_data(&self) -> Vec<u8> {
+        let mut raw_bytes = Vec::new();
+        for value in self.iter() {
+            raw_bytes.extend(value.to_be_bytes().to_vec());
+        }
+        raw_bytes
+    }
 }
 
 impl ValueType for Address {
@@ -413,5 +544,8 @@ impl ValueType for Address {
         } else {
             None
         }
+    }
+    fn into_raw_data(&self) -> Vec<u8> {
+        Vec::from(self.0.as_bytes())
     }
 }
