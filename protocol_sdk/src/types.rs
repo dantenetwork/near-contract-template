@@ -1,6 +1,7 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::env;
 use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::json_types::U128;
 // use near_sdk::serde_json::{self, json, Value};
 // use crate::payload;
 
@@ -22,7 +23,7 @@ pub struct SQoS {
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Session {
-    pub id: u128,
+    pub id: U128,
     pub callback: Option<String>,
 }
 
@@ -41,7 +42,7 @@ pub struct Message {
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Context {
-    pub id: u128,
+    pub id: U128,
     pub from_chain: String,
     pub sender: String,
     pub signer: String,
