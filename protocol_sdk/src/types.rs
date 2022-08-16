@@ -1,6 +1,5 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::env;
-use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
 // use near_sdk::serde_json::{self, json, Value};
 // use crate::payload;
@@ -23,7 +22,7 @@ pub struct SQoS {
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Session {
-    pub id: u64,
+    pub id: u128,
     pub callback: Option<String>,
 }
 
@@ -42,7 +41,7 @@ pub struct Message {
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Context {
-    pub id: u64,
+    pub id: u128,
     pub from_chain: String,
     pub sender: String,
     pub signer: String,
@@ -95,7 +94,7 @@ pub enum Value {
     Uint16(u16),
     Uint32(u32),
     Uint64(u64),
-    Uint128(U128),
+    Uint128(u128),
     Int8(i8),
     Int16(i16),
     Int32(i32),
@@ -105,7 +104,7 @@ pub enum Value {
     VecUint16(Vec<u16>),
     VecUint32(Vec<u32>),
     VecUint64(Vec<u64>),
-    VecUint128(Vec<U128>),
+    VecUint128(Vec<u128>),
     VecInt8(Vec<i8>),
     VecInt16(Vec<i16>),
     VecInt32(Vec<i32>),
@@ -266,8 +265,8 @@ impl ValueType for u64 {
     }
 }
 
-impl ValueType for U128 {
-    type Type = U128;
+impl ValueType for u128 {
+    type Type = u128;
     fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::Uint128(val) = *type_value {
             Some(val)
@@ -277,7 +276,7 @@ impl ValueType for U128 {
     }
 
     fn into_raw_data(&self) -> Vec<u8> {
-        self.0.to_be_bytes().to_vec()
+        self.to_be_bytes().to_vec()
     }
 }
 
@@ -393,7 +392,7 @@ impl ValueType for Vec<u16> {
             None
         }
     }
-    
+
     fn into_raw_data(&self) -> Vec<u8> {
         let mut raw_bytes = Vec::new();
         for value in self.iter() {
@@ -441,8 +440,8 @@ impl ValueType for Vec<u64> {
     }
 }
 
-impl ValueType for Vec<U128> {
-    type Type = Vec<U128>;
+impl ValueType for Vec<u128> {
+    type Type = Vec<u128>;
     fn get_value(type_value: &Value) -> Option<Self::Type> {
         if let Value::VecUint128(val) = type_value.clone() {
             Some(val)
@@ -454,7 +453,7 @@ impl ValueType for Vec<U128> {
     fn into_raw_data(&self) -> Vec<u8> {
         let mut raw_bytes = Vec::new();
         for value in self.iter() {
-            raw_bytes.extend(value.0.to_be_bytes().to_vec());
+            raw_bytes.extend(value.to_be_bytes().to_vec());
         }
         raw_bytes
     }

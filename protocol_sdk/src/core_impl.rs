@@ -78,15 +78,8 @@ impl OmniChain {
         )
     }
 
-    pub fn send_response_message(&self, to_chain: String, content: Content, id: u64) {
-        self.internal_call_omni_chain(
-            to_chain,
-            content,
-            Some(Session {
-                id: id,
-                callback: None,
-            }),
-        );
+    pub fn send_response_message(&self, to_chain: String, content: Content, id: u128) {
+        self.internal_call_omni_chain(to_chain, content, Some(Session { id, callback: None }));
     }
 
     pub fn register_dst_contract(
