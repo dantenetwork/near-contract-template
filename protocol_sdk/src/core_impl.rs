@@ -1,6 +1,7 @@
 use crate::types::{Content, DstContract, Session};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::json_types::U128;
 use near_sdk::{env, ext_contract, AccountId, Balance, Gas, IntoStorageKey, Promise};
 use std::collections::HashMap;
 
@@ -11,7 +12,7 @@ const NO_DEPOSIT: Balance = 0;
 #[ext_contract(ext_cross_contract)]
 pub trait OmniChainContract {
     fn send_message(&mut self, to_chain: String, content: Content, session: Option<Session>)
-        -> u64;
+        -> u128;
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
@@ -72,13 +73,13 @@ impl OmniChain {
             to_chain,
             content,
             Some(Session {
-                id: 0,
+                id: U128(0),
                 callback: Some(callback),
             }),
         )
     }
 
-    pub fn send_response_message(&self, to_chain: String, content: Content, id: u128) {
+    pub fn send_response_message(&self, to_chain: String, content: Content, id: U128) {
         self.internal_call_omni_chain(to_chain, content, Some(Session { id, callback: None }));
     }
 
