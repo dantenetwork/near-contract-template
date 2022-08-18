@@ -1,15 +1,15 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::env;
-use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::json_types::U128;
+use near_sdk::serde::{Deserialize, Serialize};
 // use near_sdk::serde_json::{self, json, Value};
 // use crate::payload;
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Content {
-    pub contract: String,
-    pub action: String,
+    pub contract: Vec<u8>,
+    pub action: Vec<u8>,
     pub data: Payload,
 }
 
@@ -24,7 +24,7 @@ pub struct SQoS {
 #[serde(crate = "near_sdk::serde")]
 pub struct Session {
     pub id: U128,
-    pub callback: Option<String>,
+    pub callback: Option<Vec<u8>>,
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
@@ -32,8 +32,8 @@ pub struct Session {
 pub struct Message {
     pub from_chain: String,
     pub to_chain: String,
-    pub sender: String,
-    pub signer: String,
+    pub sender: Vec<u8>,
+    pub signer: Vec<u8>,
     pub sqos: Vec<SQoS>,
     pub content: Content,
     pub session: Session,
@@ -44,8 +44,8 @@ pub struct Message {
 pub struct Context {
     pub id: U128,
     pub from_chain: String,
-    pub sender: String,
-    pub signer: String,
+    pub sender: Vec<u8>,
+    pub signer: Vec<u8>,
     pub contract_id: String,
     pub action: String,
     pub sqos: Vec<SQoS>,
@@ -55,8 +55,8 @@ pub struct Context {
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(tag = "type", crate = "near_sdk::serde")]
 pub struct DstContract {
-    pub contract_address: String,
-    pub action_name: String,
+    pub contract_address: Vec<u8>,
+    pub action_name: Vec<u8>,
 }
 
 // #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
