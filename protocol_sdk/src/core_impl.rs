@@ -11,8 +11,12 @@ const NO_DEPOSIT: Balance = 0;
 
 #[ext_contract(ext_cross_contract)]
 pub trait OmniChainContract {
-    fn send_message(&mut self, to_chain: String, content: Content, session: Option<Session>)
-        -> u128;
+    fn send_message(
+        &mut self,
+        to_chain: String,
+        content: Content,
+        session: Option<Session>,
+    ) -> u128;
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
@@ -20,7 +24,7 @@ pub struct OmniChain {
     pub owner_id: AccountId,
     pub omni_chain_contract_id: AccountId,
     pub destination_contract: UnorderedMap<String, HashMap<String, DstContract>>,
-    pub permitted_contract: UnorderedMap<(String, String), Vec<String>>,
+    pub permitted_contract: UnorderedMap<(String, Vec<u8>), Vec<String>>,
 }
 
 impl OmniChain {
@@ -67,7 +71,7 @@ impl OmniChain {
         &self,
         to_chain: String,
         content: Content,
-        callback: String,
+        callback: Vec<u8>,
     ) -> Promise {
         self.internal_call_omni_chain(
             to_chain,
@@ -87,8 +91,8 @@ impl OmniChain {
         &mut self,
         chain_name: String,
         action_name: String,
-        contract_address: String,
-        contract_action_name: String,
+        contract_address: Vec<u8>,
+        contract_action_name: Vec<u8>,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
         match self.destination_contract.get(&chain_name) {
@@ -140,7 +144,7 @@ impl OmniChain {
     pub fn register_permitted_contract(
         &mut self,
         chain_name: String,
-        sender: String,
+        sender: Vec<u8>,
         action_name: String,
     ) {
         // assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
@@ -157,7 +161,7 @@ impl OmniChain {
     pub fn assert_register_permitted_contract(
         &self,
         chain_name: &String,
-        sender: &String,
+        sender: &Vec<u8>,
         action: &String,
     ) {
         let key = (chain_name.clone(), sender.clone());
