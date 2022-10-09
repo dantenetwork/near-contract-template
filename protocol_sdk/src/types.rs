@@ -17,14 +17,17 @@ pub struct Content {
 #[serde(crate = "near_sdk::serde")]
 pub struct SQoS {
     pub t: u8,
-    pub v: Option<String>,
+    pub v: Option<Vec<u8>>,
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Session {
     pub id: U128,
+    pub session_type: u8,
     pub callback: Option<Vec<u8>>,
+    pub commitment: Option<Vec<u8>>,
+    pub answer: Option<Vec<u8>>,
 }
 
 #[derive(Clone, PartialEq, BorshDeserialize, BorshSerialize, Serialize, Deserialize, Debug)]

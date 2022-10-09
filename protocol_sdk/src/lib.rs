@@ -9,7 +9,7 @@ pub trait RegisterCore {
     fn register_permitted_contract(
         &mut self,
         chain_name: String,
-        sender: Vec<u8>,
+        sender: String,
         action_name: String,
     );
 
@@ -17,7 +17,7 @@ pub trait RegisterCore {
         &mut self,
         action_name: String,
         chain_name: String,
-        contract_address: Vec<u8>,
-        contract_action_name: Vec<u8>,
+        contract_address: String,
+        contract_action_name: String,
     );
 }
