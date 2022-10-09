@@ -78,23 +78,38 @@ impl OmniChain {
             content,
             Some(Session {
                 id: U128(0),
+                session_type: 2,
                 callback: Some(callback),
+                commitment: None,
+                answer: None,
             }),
         )
     }
 
     pub fn send_response_message(&self, to_chain: String, content: Content, id: U128) {
-        self.internal_call_omni_chain(to_chain, content, Some(Session { id, callback: None }));
+        self.internal_call_omni_chain(
+            to_chain,
+            content,
+            Some(Session {
+                id,
+                session_type: 1,
+                callback: None,
+                commitment: None,
+                answer: None,
+            }),
+        );
     }
 
     pub fn register_dst_contract(
         &mut self,
         chain_name: String,
         action_name: String,
-        contract_address: Vec<u8>,
-        contract_action_name: Vec<u8>,
+        contract_address: String,
+        contract_action_name: String,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
+        let contract_address = hex::decode(contract_address).unwrap();
+        let contract_action_name = hex::decode(contract_action_name).unwrap();
         match self.destination_contract.get(&chain_name) {
             Some(mut map) => {
                 // if !map.contains_key(&action_name) {
@@ -144,10 +159,11 @@ impl OmniChain {
     pub fn register_permitted_contract(
         &mut self,
         chain_name: String,
-        sender: Vec<u8>,
+        sender: String,
         action_name: String,
     ) {
         // assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
+        let sender = hex::decode(sender).unwrap();
         let key = (chain_name, sender);
         let mut actions = Vec::new();
         if let Some(acts) = self.permitted_contract.get(&key) {

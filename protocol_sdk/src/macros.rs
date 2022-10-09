@@ -11,8 +11,8 @@ macro_rules! impl_omni_chain_register {
                 &mut self,
                 chain_name: String,
                 action_name: String,
-                contract_address: Vec<u8>,
-                contract_action_name: Vec<u8>,
+                contract_address: String,
+                contract_action_name: String,
             ) {
                 self.$cross.register_dst_contract(
                     chain_name,
@@ -25,7 +25,7 @@ macro_rules! impl_omni_chain_register {
             fn register_permitted_contract(
                 &mut self,
                 chain_name: String,
-                sender: Vec<u8>,
+                sender: String,
                 action_name: String,
             ) {
                 self.$cross
