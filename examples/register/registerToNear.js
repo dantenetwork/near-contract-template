@@ -21,29 +21,13 @@ const nearConfig = {
 
 // destination contract information
 const Chains = [
-  // MOONBASEALPHA
+  // ROCOCO
   {
-    greetingContract: '0xC0F1706106D2d7208C6586d1C8Aec520d99E9F14',
-    greetingActionName: '0x2d436822',
-    computingContract: '0x711cb9B41Ae7862b5961a134703Cd6B5f16dAdF5',
-    computingTaskActionName: '0x47e50a42',
-    destinationChainName: 'MOONBASEALPHA',
-  },
-  // FUJI
-  {
-    greetingContract: '0x1723f39e05Ca8b14ACaf244bAFFBd79801d42A63',
-    greetingActionName: '0x2d436822',
-    computingContract: '0x7F5b6F5F7a786F63383E8681Da7ACCEed76Ab209',
-    computingTaskActionName: '0x47e50a42',
-    destinationChainName: 'FUJI',
-  },
-  // SHIBUYA
-  {
-    greetingContract: 'a1mydsZDKLQJh8mwB1NZ86XVJ8ApiyNVWikMrhoLwoGfZex',
+    greetingContract: '0x5e5e0249875e40b0f3275c62efb3620abaf825abd7a7092c68c1ade6640c1c6e',
     greetingActionName: '0x0c724dc2',
-    computingContract: 'ZakeYTFPNkC9Cgceui2aBZ6G23nA6ieB3KVWfmdNDv6UfM1',
+    computingContract: '0xd8785b20e687c9cafa2d0c1a634cdfd9cecab65c39533d4bc766a3d165f8eb6d',
     computingTaskActionName: '0x00000001',
-    destinationChainName: 'SHIBUYA',
+    destinationChainName: 'ROCOCO',
   }
 ];
 

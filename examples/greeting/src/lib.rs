@@ -1,5 +1,6 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{env, near_bindgen, AccountId, BorshStorageKey, PanicOnDefault, PromiseOrValue};
 use protocol_sdk::{Content, Context, OmniChain, Payload, Value};
@@ -17,7 +18,7 @@ pub struct GreetingData {
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Greeting {
     omni_chain: OmniChain,
-    greeting_data: UnorderedMap<(String, u64), GreetingData>,
+    greeting_data: UnorderedMap<(String, u128), GreetingData>,
 }
 
 #[derive(BorshSerialize, BorshStorageKey)]
@@ -55,7 +56,7 @@ impl Greeting {
         title: String,
         content: String,
         date: String,
-    ) -> PromiseOrValue<u64> {
+    ) -> PromiseOrValue<U128> {
         let mut payload = Payload::new();
         let greeting_data = Value::VecString(vec!["NEARTEST".to_string(), title, content, date]);
         payload.push_item("greeting".to_string(), greeting_data);
@@ -96,11 +97,11 @@ impl Greeting {
             date: greeting[3].clone(),
         };
         self.greeting_data
-            .insert(&(greeting[0].clone(), context.id), &data);
+            .insert(&(greeting[0].clone(), context.id.0), &data);
     }
 
-    pub fn get_greeting(&self, from_chain: String, id: u64) -> Option<GreetingData> {
-        self.greeting_data.get(&(from_chain, id))
+    pub fn get_greeting(&self, from_chain: String, id: U128) -> Option<GreetingData> {
+        self.greeting_data.get(&(from_chain, id.0))
     }
 
     pub fn clear_greeting_data(&mut self) {
