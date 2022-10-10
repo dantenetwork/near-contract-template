@@ -108,8 +108,9 @@ impl OmniChain {
         contract_action_name: String,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
-        let contract_address = hex::decode(contract_address).unwrap();
-        let contract_action_name = hex::decode(contract_action_name).unwrap();
+        let contract_address = hex::decode(contract_address.strip_prefix("0x").unwrap()).unwrap();
+        let contract_action_name =
+            hex::decode(contract_action_name.strip_prefix("0x").unwrap()).unwrap();
         match self.destination_contract.get(&chain_name) {
             Some(mut map) => {
                 // if !map.contains_key(&action_name) {
@@ -163,7 +164,7 @@ impl OmniChain {
         action_name: String,
     ) {
         // assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
-        let sender = hex::decode(sender).unwrap();
+        let sender = hex::decode(sender.strip_prefix("0x").unwrap()).unwrap();
         let key = (chain_name, sender);
         let mut actions = Vec::new();
         if let Some(acts) = self.permitted_contract.get(&key) {
