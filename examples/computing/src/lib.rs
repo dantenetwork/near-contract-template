@@ -1,5 +1,6 @@
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::json_types::U128;
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{
     env, ext_contract, near_bindgen, AccountId, Balance, BorshStorageKey, Gas, PanicOnDefault,
@@ -22,12 +23,12 @@ pub struct ComputeTask {
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Computation {
     omni_chain: OmniChain,
-    compute_task: UnorderedMap<(String, u64), ComputeTask>,
+    compute_task: UnorderedMap<(String, u128), ComputeTask>,
 }
 
 #[ext_contract(ext_self)]
 pub trait MyContract {
-    fn callback(&mut self, to_chain: String, nums: Vec<u32>) -> u64;
+    fn callback(&mut self, to_chain: String, nums: Vec<u32>) -> U128;
 }
 
 #[derive(BorshSerialize, BorshStorageKey)]
@@ -52,7 +53,7 @@ impl Computation {
         }
     }
 
-    pub fn send_compute_task(&mut self, to_chain: String, nums: Vec<u32>) -> PromiseOrValue<u64> {
+    pub fn send_compute_task(&mut self, to_chain: String, nums: Vec<u32>) -> PromiseOrValue<U128> {
         let mut payload = Payload::new();
         payload.push_item("nums".to_string(), Value::VecUint32(nums.clone()));
         let action_name = "receive_compute_task".to_string();
@@ -69,7 +70,7 @@ impl Computation {
             action: contract.action_name.clone(),
             data: payload,
         };
-        let callback = "receive_compute_result".to_string();
+        let callback = "receive_compute_result".as_bytes().to_vec();
         self.omni_chain
             .call_cross_with_session(to_chain.clone(), content, callback)
             .then(ext_self::callback(
@@ -122,7 +123,7 @@ impl Computation {
         let item = payload.get_item("result".to_string()).unwrap();
         let result = item.get_value::<u32>().unwrap();
         let session = context.session;
-        let id = session.id;
+        let id = session.id.0;
         let key = (context.from_chain, id);
         self.compute_task.get(&key).as_mut().and_then(|task| {
             task.result = Some(result);
@@ -130,26 +131,28 @@ impl Computation {
         });
     }
 
-    pub fn get_compute_task(&self, to_chain: String, id: u64) -> Option<ComputeTask> {
-        self.compute_task.get(&(to_chain, id))
+    pub fn get_compute_task(&self, to_chain: String, id: U128) -> Option<ComputeTask> {
+        self.compute_task.get(&(to_chain, id.0))
     }
 
     #[private]
-    pub fn callback(&mut self, to_chain: String, nums: Vec<u32>) -> u64 {
+    pub fn callback(&mut self, to_chain: String, nums: Vec<u32>) -> U128 {
         // let mut session_id: u64 = 0;
         match env::promise_result(0) {
             PromiseResult::Successful(result) => {
-                let session_id = near_sdk::serde_json::from_slice::<u64>(&result)
+                let session_id = near_sdk::serde_json::from_slice::<U128>(&result)
                     .expect("unwrap session id failed");
-                self.compute_task
-                    .insert(&(to_chain, session_id), &ComputeTask { nums, result: None });
+                self.compute_task.insert(
+                    &(to_chain, session_id.0),
+                    &ComputeTask { nums, result: None },
+                );
                 session_id
             }
             _ => env::panic_str("call omi-chain failed"),
         }
     }
 
-    pub fn get_dst_contract(&self, chain: String, action_name: String) -> (String, String) {
+    pub fn get_dst_contract(&self, chain: String, action_name: String) -> (Vec<u8>, Vec<u8>) {
         let dst_contract = self.omni_chain.destination_contract.get(&chain).unwrap();
         // let action_name = "receive_"
         let contract = dst_contract.get(&action_name).unwrap();
@@ -159,7 +162,7 @@ impl Computation {
         )
     }
     // UnorderedMap<(String, String), Vec<String>>,
-    pub fn get_permitted_contract(&self) -> Vec<((String, String), Vec<String>)> {
+    pub fn get_permitted_contract(&self) -> Vec<((String, Vec<u8>), Vec<String>)> {
         self.omni_chain
             .permitted_contract
             .iter()

@@ -1,6 +1,7 @@
 use crate::types::{Content, DstContract, Session};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::json_types::U128;
 use near_sdk::{env, ext_contract, AccountId, Balance, Gas, IntoStorageKey, Promise};
 use std::collections::HashMap;
 
@@ -10,8 +11,12 @@ const NO_DEPOSIT: Balance = 0;
 
 #[ext_contract(ext_cross_contract)]
 pub trait OmniChainContract {
-    fn send_message(&mut self, to_chain: String, content: Content, session: Option<Session>)
-        -> u64;
+    fn send_message(
+        &mut self,
+        to_chain: String,
+        content: Content,
+        session: Option<Session>,
+    ) -> u128;
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Debug)]
@@ -19,7 +24,7 @@ pub struct OmniChain {
     pub owner_id: AccountId,
     pub omni_chain_contract_id: AccountId,
     pub destination_contract: UnorderedMap<String, HashMap<String, DstContract>>,
-    pub permitted_contract: UnorderedMap<(String, String), Vec<String>>,
+    pub permitted_contract: UnorderedMap<(String, Vec<u8>), Vec<String>>,
 }
 
 impl OmniChain {
@@ -58,33 +63,39 @@ impl OmniChain {
         )
     }
 
-    pub fn call_cross(&self, to_chain: String, content: Content) {
-        self.internal_call_omni_chain(to_chain, content, None);
+    pub fn call_cross(&self, to_chain: String, content: Content) -> Promise {
+        self.internal_call_omni_chain(to_chain, content, None)
     }
 
     pub fn call_cross_with_session(
         &self,
         to_chain: String,
         content: Content,
-        callback: String,
+        callback: Vec<u8>,
     ) -> Promise {
         self.internal_call_omni_chain(
             to_chain,
             content,
             Some(Session {
-                id: 0,
+                id: U128(0),
+                session_type: 2,
                 callback: Some(callback),
+                commitment: None,
+                answer: None,
             }),
         )
     }
 
-    pub fn send_response_message(&self, to_chain: String, content: Content, id: u64) {
+    pub fn send_response_message(&self, to_chain: String, content: Content, id: U128) {
         self.internal_call_omni_chain(
             to_chain,
             content,
             Some(Session {
-                id: id,
+                id,
+                session_type: 1,
                 callback: None,
+                commitment: None,
+                answer: None,
             }),
         );
     }
@@ -97,6 +108,9 @@ impl OmniChain {
         contract_action_name: String,
     ) {
         assert_eq!(env::predecessor_account_id(), self.owner_id, "Unauthorize");
+        let contract_address = hex::decode(contract_address.strip_prefix("0x").unwrap()).unwrap();
+        let contract_action_name =
+            hex::decode(contract_action_name.strip_prefix("0x").unwrap()).unwrap();
         match self.destination_contract.get(&chain_name) {
             Some(mut map) => {
                 // if !map.contains_key(&action_name) {
@@ -150,6 +164,7 @@ impl OmniChain {
         action_name: String,
     ) {
         // assert_eq!(self.owner_id, env::predecessor_account_id(), "Unauthorize");
+        let sender = hex::decode(sender.strip_prefix("0x").unwrap()).unwrap();
         let key = (chain_name, sender);
         let mut actions = Vec::new();
         if let Some(acts) = self.permitted_contract.get(&key) {
@@ -163,7 +178,7 @@ impl OmniChain {
     pub fn assert_register_permitted_contract(
         &self,
         chain_name: &String,
-        sender: &String,
+        sender: &Vec<u8>,
         action: &String,
     ) {
         let key = (chain_name.clone(), sender.clone());
