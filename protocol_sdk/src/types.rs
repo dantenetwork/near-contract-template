@@ -213,144 +213,6 @@ impl ValueType for String {
     }
 }
 
-impl ValueType for u8 {
-    type Type = u8;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Uint8(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for u16 {
-    type Type = u16;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Uint16(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for u32 {
-    type Type = u32;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Uint32(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for u64 {
-    type Type = u64;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Uint64(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for u128 {
-    type Type = u128;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Uint128(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for i8 {
-    type Type = i8;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Int8(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for i16 {
-    type Type = i16;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Int16(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for i32 {
-    type Type = i32;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Int32(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-impl ValueType for i64 {
-    type Type = i64;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::Int64(val) = *type_value {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        self.to_be_bytes().to_vec()
-    }
-}
-
-// impl ValueType for i128 {
-//     type Type = i128;
-//     fn get_value(type_value: &Value) -> Option<Self::Type> {
-//         if let Value::Int128(val) = *type_value {
-//             Some(val)
-//         } else {
-//             None
-//         }
-//     }
-// }
-
 impl ValueType for Vec<String> {
     type Type = Vec<String>;
     fn get_value(type_value: &Value) -> Option<Self::Type> {
@@ -369,176 +231,6 @@ impl ValueType for Vec<String> {
     }
 }
 
-impl ValueType for Vec<u8> {
-    type Type = Vec<u8>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecUint8(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.push(*value);
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<u16> {
-    type Type = Vec<u16>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecUint16(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<u32> {
-    type Type = Vec<u32>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecUint32(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<u64> {
-    type Type = Vec<u64>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecUint64(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<u128> {
-    type Type = Vec<u128>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecUint128(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<i8> {
-    type Type = Vec<i8>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecInt8(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<i16> {
-    type Type = Vec<i16>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecInt16(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<i32> {
-    type Type = Vec<i32>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecInt32(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
-impl ValueType for Vec<i64> {
-    type Type = Vec<i64>;
-    fn get_value(type_value: &Value) -> Option<Self::Type> {
-        if let Value::VecInt64(val) = type_value.clone() {
-            Some(val)
-        } else {
-            None
-        }
-    }
-
-    fn into_raw_data(&self) -> Vec<u8> {
-        let mut raw_bytes = Vec::new();
-        for value in self.iter() {
-            raw_bytes.extend(value.to_be_bytes().to_vec());
-        }
-        raw_bytes
-    }
-}
-
 impl ValueType for Address {
     type Type = Address;
     fn get_value(type_value: &Value) -> Option<Self::Type> {
@@ -551,4 +243,69 @@ impl ValueType for Address {
     fn into_raw_data(&self) -> Vec<u8> {
         Vec::from(self.0.as_bytes())
     }
+}
+
+macro_rules! def_int_values {
+    ($($name:ident($repr:ty),)*) => {$(
+        impl ValueType for $repr {
+            type Type = $repr;
+            fn get_value(type_value: &Value) -> Option<Self::Type> {
+                if let Value::$name(val) = type_value.clone() {
+                    Some(val)
+                } else {
+                    None
+                }
+            }
+            fn into_raw_data(&self) -> Vec<u8> {
+                self.to_be_bytes().to_vec()
+            }
+        }
+    )*}
+}
+
+macro_rules! def_vec_int_values {
+    ($($name:ident($repr:ty),)*) => {$(
+        impl ValueType for $repr {
+            type Type = $repr;
+            fn get_value(type_value: &Value) -> Option<Self::Type> {
+                if let Value::$name(val) = type_value.clone() {
+                    Some(val)
+                } else {
+                    None
+                }
+            }
+
+            fn into_raw_data(&self) -> Vec<u8> {
+                let mut raw_bytes = Vec::new();
+                for value in self.iter() {
+                    raw_bytes.extend(value.to_be_bytes().to_vec());
+                }
+                raw_bytes
+            }
+        }
+    )*}
+}
+
+def_int_values! {
+    Uint8(u8),
+    Uint16(u16),
+    Uint32(u32),
+    Uint64(u64),
+    Uint128(u128),
+    Int8(i8),
+    Int16(i16),
+    Int32(i32),
+    Int64(i64),
+}
+
+def_vec_int_values! {
+    VecUint8(Vec<u8>),
+    VecUint16(Vec<u16>),
+    VecUint32(Vec<u32>),
+    VecUint64(Vec<u64>),
+    VecUint128(Vec<u128>),
+    VecInt8(Vec<i8>),
+    VecInt16(Vec<i16>),
+    VecInt32(Vec<i32>),
+    VecInt64(Vec<i64>),
 }
